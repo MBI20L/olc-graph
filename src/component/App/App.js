@@ -22,11 +22,6 @@ const inputs = [
   'AABAB'
 ];
 
-
-
-
-
-
 class App extends React.Component {
 
   constructor(props) {
@@ -84,7 +79,7 @@ handleOptionChange = changeEvent => {
     selectedOption: changeEvent.target.value
   });
 };
-
+// Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
   if (b.length === 0) {
     return "";
@@ -93,26 +88,33 @@ handleOptionChange = changeEvent => {
   if (a.endsWith(b)) {
     return b;
   }
-
+  // Opcjonalne sprawdzanie nakładanie się z lewej strony,
+  // ale na razie wystarczy nam sprawdzanie prawostronne.
   //if (a.indexOf(b) >= 0) {
    // return b;
   //}
 
   return this.findOverlap(a, b.substring(0, b.length - 1));  
 }
-
-findOverlapLength(a,b) {
+// Metoda zwracająca długość nakładającego się fragmentu obu sekwencji.apLength(a,b) {
   return this.findOverlap(a, b).length;
 }
 
+// Wstępny prototyp implementacji algorytmu zachłannego. 
+// Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
+// wyświetlanie wyników na stronie.
 callFindOverlap(){
   console.log("aaa");
   console.log(inputs.content);
   let i;
   let j;
+  // macierz nxn przechowująca wagi krawędzi między grafami, 
+  // czyli długości nakładających się fragmentów obu sekwencji.
   let overlapArray = new Array(inputs.length);
   console.log(overlapArray);
   
+  // Wpierw uzupełniamy macierz nakładania się 0 i 
+  // Miarą nakładania się sekwencji.
   for(i=0; i < inputs.length; i++){
     overlapArray[i] = new Array (inputs.length);
     overlapArray[i].fill(0);
@@ -123,29 +125,40 @@ callFindOverlap(){
     }
   }
   console.log(overlapArray);
-
+  // Następnie przechodzimy po macierzy sekwencji, zaczynając od rekordu,
+  // Od którego wpierw zaczęliśmy tworzenie macierzy nakładania.
+  // Następnie przechodzimy po kolejnych sekwencjach, które najbardziej się
+  // nakładają. Wypisujemy po kolei kolejne podsekwencje. 
   let index = 0;
   let orderArray = new Array(inputs.length);
   for(i=0; i< inputs.length-1; i++){
-    console.log("iteracja " + i)
+    console.log("Iteracja " + i)
     let maxVal = Math.max.apply(Math, overlapArray[index]);
-    console.log("max " + maxVal);
+    console.log("Max nakładanie " + maxVal);
     let currentIndex = overlapArray[index].indexOf(maxVal);
     let nextMaxVal = Math.max.apply(Math, overlapArray[currentIndex]);
    
+    // Proste sprawdzenie na wypadek skrajnego przypadku, gdyby z następnego
+    // węzła nie można było przejść nigdzie dalej. 
     if(!nextMaxVal && i != inputs.length-2) {
+      console.log("Obsługa ślepego zaułka");
       overlapArray[index][currentIndex] = 0;
       maxVal = Math.max.apply(Math, overlapArray[index]); 
       currentIndex = overlapArray[index].indexOf(maxVal);
       console.log("Second max " + maxVal +' '+ currentIndex);
     }
+    // Dodanie kolejnego kroku oraz wartości nakładania w kroku.
     orderArray[i] = [currentIndex, maxVal];
 
     console.log("current " + currentIndex);
     index = currentIndex;
+    // Dla celów testowych wypisanie kolejnych kroków algorytmu.
     console.log(inputs[index]);
     
   }
+  // TODO: utworzenie metody która na podstawie macierzy kroków
+    // pełnej sekwencji. Będziemy dodawać kolejne podsekwencje (o indeksach 
+    // wskazanych w orderArray), ale bez pierwszych maxVal znaków. 
 
   console.log(orderArray);
 }
