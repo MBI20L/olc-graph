@@ -96,7 +96,8 @@ handleOptionChange = changeEvent => {
 
   return this.findOverlap(a, b.substring(0, b.length - 1));  
 }
-// Metoda zwracająca długość nakładającego się fragmentu obu sekwencji.apLength(a,b) {
+// Metoda zwracająca długość nakładającego się fragmentu obu sekwencji.
+findOverlapLength(a,b) {
   return this.findOverlap(a, b).length;
 }
 
