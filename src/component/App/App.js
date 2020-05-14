@@ -15,7 +15,7 @@ import DefaultInputList from '../InputList/DefaultInputList'
 
 library.add(faTrash)
 
-const inputs = [
+const defaultInputs = [
   'AAABA',
   'ABAAB',
   'BAABA',
@@ -38,6 +38,7 @@ class App extends React.Component {
     this.addItem = this.addItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
     this.callFindOverlap = this.callFindOverlap.bind(this);
+    this.checkInput = this.checkInput.bind(this);
 }
 
 handleInput(e){
@@ -63,7 +64,7 @@ addItem(e){
             }
         })
     }
-    console.log(this.state.items)
+
 }
 
 deleteItem(key){
@@ -79,6 +80,10 @@ handleOptionChange = changeEvent => {
     selectedOption: changeEvent.target.value
   });
 };
+
+checkInput(){
+ 
+}
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
   if (b.length === 0) {
@@ -105,8 +110,21 @@ findOverlapLength(a,b) {
 // Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
 // wyświetlanie wyników na stronie.
 callFindOverlap(){
-  console.log("aaa");
-  console.log(inputs.content);
+
+  let inputs =[];
+
+  //Pobranie danych wpisywanych ręcznie
+  const myInputs = this.state.items.map((item) => item.text);
+
+  //Przypisanie tablicy w zależności od wybranego radiobuttona
+  const defaultData = this.state.selectedOption == 'option1';
+  if(defaultData){
+    inputs = defaultInputs;
+  } else {
+    inputs = myInputs;
+  }
+  console.log("Dane wejsciowe");
+  console.log(inputs);
   let i;
   let j;
   // macierz nxn przechowująca wagi krawędzi między grafami, 
@@ -172,7 +190,7 @@ callFindOverlap(){
                                   aria-label="Dodaj odczyt" aria-describedby="button-addon2" 
                                   value={this.state.currentItem.text} onChange={this.handleInput}></input>
                           <div className="input-group-append">
-                              <button className="btn btn-outline-secondary" type="submit" id="button-addon2">Dodaj</button>
+                              <button className="btn btn-outline-secondary" type="submit" id="button-addon2" onClick={this.checkInput}>Dodaj</button>
                           </div>
                       </div>
                   </form>
@@ -184,7 +202,7 @@ callFindOverlap(){
     const defaultData = this.state.selectedOption == 'option1';
     let list;
     if(defaultData) {
-      list = <DefaultInputList inputs={inputs}/>
+      list = <DefaultInputList defaultInputs={defaultInputs}/>
       } else {
        list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}/> </div>
       }
