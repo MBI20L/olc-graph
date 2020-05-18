@@ -22,6 +22,28 @@ const inputs = [
   'AABAB'
 ];
 
+// Klasa do zbierania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
+class History {
+
+    constructor(_algorithmName){
+      this.algorithmName = _algorithmName;
+        // Tablica przechowująca indeksy kolejnych pobieranych podsekwencji
+        // TODO: rozważyć w zależności od implementacji, czy nie zaimplementować informacji o rodzaju kroku/komentarzu
+      this.steps         = new Array();
+        
+    }
+
+    addStep(_step){
+      this.steps.push(_step);
+    }
+
+    recall(){
+      //TODO : wypisanie historii
+
+    }
+
+}
+
 class App extends React.Component {
 
   constructor(props) {
@@ -81,6 +103,7 @@ handleOptionChange = changeEvent => {
 };
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
+   
   if (b.length === 0) {
     return "";
   }
@@ -105,21 +128,22 @@ findOverlapLength(a,b) {
 // Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
 // wyświetlanie wyników na stronie.
 callFindOverlap(){
+  let inputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
   console.log("aaa");
   console.log(inputs.content);
   let i;
   let j;
   // macierz nxn przechowująca wagi krawędzi między grafami, 
   // czyli długości nakładających się fragmentów obu sekwencji.
-  let overlapArray = new Array(inputs.length);
+  let overlapArray = new Array(inputLength);
   console.log(overlapArray);
   
   // Wpierw uzupełniamy macierz nakładania się 0 i 
   // Miarą nakładania się sekwencji.
-  for(i=0; i < inputs.length; i++){
-    overlapArray[i] = new Array (inputs.length);
+  for(i=0; i < inputLength; i++){
+    overlapArray[i] = new Array (inputLength);
     overlapArray[i].fill(0);
-    for(j=i+1; j < inputs.length; j++){
+    for(j=i+1; j < inputLength; j++){
       let output = this.findOverlapLength(inputs[i], inputs[j] );
       overlapArray[i][j] = output;
       console.log(output);
@@ -130,18 +154,24 @@ callFindOverlap(){
   // Od którego wpierw zaczęliśmy tworzenie macierzy nakładania.
   // Następnie przechodzimy po kolejnych sekwencjach, które najbardziej się
   // nakładają. Wypisujemy po kolei kolejne podsekwencje. 
-  let index = 0;
-  let orderArray = new Array(inputs.length);
-  for(i=0; i< inputs.length-1; i++){
+  // Dodać randomizację indeksu, a następnie uwzględnić kilka róznych przejść jeśli wybrany indeks nie zwraca ok wartości
+  let index = 0; 
+  let orderArray = new Array(inputLength);
+  
+  for(i=0; i< inputLength-1; i++){
+    
     console.log("Iteracja " + i)
+    
     let maxVal = Math.max.apply(Math, overlapArray[index]);
-    console.log("Max nakładanie " + maxVal);
     let currentIndex = overlapArray[index].indexOf(maxVal);
+    
+    console.log("Max nakładanie " + maxVal);
+    
     let nextMaxVal = Math.max.apply(Math, overlapArray[currentIndex]);
    
     // Proste sprawdzenie na wypadek skrajnego przypadku, gdyby z następnego
     // węzła nie można było przejść nigdzie dalej. 
-    if(!nextMaxVal && i != inputs.length-2) {
+    if(!nextMaxVal && i != inputLength-2) {
       console.log("Obsługa ślepego zaułka");
       overlapArray[index][currentIndex] = 0;
       maxVal = Math.max.apply(Math, overlapArray[index]); 
