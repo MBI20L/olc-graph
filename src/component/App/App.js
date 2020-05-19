@@ -10,12 +10,13 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 
 import './App.css';
 import InputList from '../InputList/InputList';
-import DefaultInputList from '../InputList/DefaultInputList'
+import DefaultInputList from '../InputList/DefaultInputList';
+import OlcGraph from '../OlcGraph/OlcGraph'
 
 
 library.add(faTrash)
 
-const inputs = [
+const defaultInputs = [
   'AAABA',
   'ABAAB',
   'BAABA',
@@ -54,11 +55,13 @@ class App extends React.Component {
         currentItem: {
             text:'',
             key: ''
-        }
+        },
+        lengthError: ''
     }
     this.handleInput = this.handleInput.bind(this);
     this.addItem = this.addItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
+    this.deleteAll = this.deleteAll.bind(this);
     this.callFindOverlap = this.callFindOverlap.bind(this);
 }
 
@@ -71,21 +74,49 @@ handleInput(e){
     })
 }
 
+validate = () => {
+  
+  let lengthError = "";
+  console.log("current item " + this.state.items[0] )
+
+  if (this.state.items[0] === undefined){
+    return true;
+  } else if (this.state.currentItem.text.length !== this.state.items[0].text.length) {
+    console.log("wymiar " + this.state.currentItem.text.length)
+    console.log("wymiar " + this.state.items[0].text.length)
+    lengthError = 'Odczyty muszą mieć te same wymiary! Wprowadź daną ponownie.';
+    this.setState({lengthError});
+    return false;
+  } 
+
+  return true;
+} 
+
 addItem(e){
     e.preventDefault();
-    const newItem = this.state.currentItem;
-    console.log(newItem);
-    if(newItem.text !== ''){
-        const newItems = [...this.state.items, newItem];
-        this.setState({
-            items: newItems,
-            currentItem: {
-                text: '',
-                key: ''
-            }
-        })
+    const isValid = this.validate();
+    console.log(isValid)
+    if (isValid) {
+      console.log(this.state);
+      const newItem = this.state.currentItem;
+      console.log(newItem);
+      if(newItem.text !== ''){
+          const newItems = [...this.state.items, newItem];
+          this.setState({
+              items: newItems,
+              currentItem: {
+                  text: '',
+                  key: ''
+              }
+          })
+      }
+      
+    } else{
+      this.state.currentItem.text = "";
     }
-    console.log(this.state.items)
+    
+   
+
 }
 
 deleteItem(key){
@@ -96,11 +127,18 @@ deleteItem(key){
     })
 }
 
+deleteAll(){
+  this.setState({
+    items: []
+  })
+}
+
 handleOptionChange = changeEvent => {
   this.setState({
     selectedOption: changeEvent.target.value
   });
 };
+
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
    
@@ -128,9 +166,27 @@ findOverlapLength(a,b) {
 // Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
 // wyświetlanie wyników na stronie.
 callFindOverlap(){
+
+
+  let inputs =[];
+
+  //Pobranie danych wpisywanych ręcznie
+  const myInputs = this.state.items.map((item) => item.text);
+
+  //Przypisanie tablicy w zależności od wybranego radiobuttona
+  const defaultData = this.state.selectedOption == 'option1';
+  if(defaultData){
+    inputs = defaultInputs;
+  } else {
+    inputs = myInputs;
+  }
+  console.log("Dane wejsciowe");
+  console.log(inputs);
+
   let inputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
   console.log("aaa");
   console.log(inputs.content);
+
   let i;
   let j;
   // macierz nxn przechowująca wagi krawędzi między grafami, 
@@ -205,6 +261,7 @@ callFindOverlap(){
                               <button className="btn btn-outline-secondary" type="submit" id="button-addon2">Dodaj</button>
                           </div>
                       </div>
+                      <div className="text-left mb-2" style={{ fontSize: 13, color: "red" }}>{this.state.lengthError}</div>
                   </form>
 
       const content = this.state.checked 
@@ -214,9 +271,9 @@ callFindOverlap(){
     const defaultData = this.state.selectedOption == 'option1';
     let list;
     if(defaultData) {
-      list = <DefaultInputList inputs={inputs}/>
+      list = <DefaultInputList defaultInputs={defaultInputs}/>
       } else {
-       list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}/> </div>
+       list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}  deleteAll={this.deleteAll}/> </div>
       }
     return (
       <div className="App">
@@ -234,14 +291,16 @@ callFindOverlap(){
                                                   onChange={this.handleOptionChange} control={<Radio color="primary"/>} label="Wprowadź swoje dane" />
               </RadioGroup>
             </FormControl>
-            </div>
-          </div>
-          <div className="row">
-            <div className="col-lg-4"> 
+            <div className="row">
+            <div className="col-lg-12"> 
               {list}
               <Button variant="contained" color="primary" onClick={this.callFindOverlap}>Rozpocznij</Button>
             </div> 
           </div>
+            </div>
+          </div>
+          
+          
         </div>              
       </div>
     );

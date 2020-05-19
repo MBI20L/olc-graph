@@ -6,9 +6,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 
 export default function DefaultList(props) {
 
-  const inputs = props.inputs;
+  const defaultInputs = props.defaultInputs;
 
-  const content = props.inputs.map((input) =>
+  const content = props.defaultInputs.map((input) =>
   <tbody>
     <tr>
       <th scope="row">1</th>
