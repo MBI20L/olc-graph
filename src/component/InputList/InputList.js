@@ -25,7 +25,7 @@ export default function InteractiveList(props) {
       <tr>
       <th scope="col">#</th>
       <th scope="col">Odczyt</th>
-      <th scope="col"></th>
+      <th scope="col"><FontAwesomeIcon className="faicons" icon="trash" onClick={ ()=> {props.deleteAll()}}></FontAwesomeIcon></th>
       </tr>
     </thead>
     
