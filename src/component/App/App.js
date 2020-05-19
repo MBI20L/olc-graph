@@ -23,27 +23,61 @@ const defaultInputs = [
   'AABAB'
 ];
 
-// Klasa do zbierania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
+// ALR enum dotyczący operacji wykonywanych przez algorytmy
+const operationType = {
+  SELECTION: "Subsequence selected",//dodanie podsekwencji do sekwencji
+  REMOVAL:   "Sequence reverted",// wycofanie podsekwencji
+  OVERLAP:   "Overlaps calculation" // wyznaczenie nakładania konkretnej podsekwencji 
+  
+}
+
+// ALR enum opisujący możliwe opcje wyświetlania danych z historii algorytmu 
+const HistoryVisualizationType = {
+  CONSOLE: 'Console'
+}
+
+// Klasa do zbierania i zwracania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
 class History {
 
     constructor(_algorithmName){
       this.algorithmName = _algorithmName;
         // Tablica przechowująca indeksy kolejnych pobieranych podsekwencji
-        // TODO: rozważyć w zależności od implementacji, czy nie zaimplementować informacji o rodzaju kroku/komentarzu
+        // W zapisie kroków dodać także informacje o tym co zrobiono (jakby np w trakcie działania odrzucono jakąś sekwencję)
       this.steps         = new Array();
         
     }
 
-    addStep(_step){
-      this.steps.push(_step);
+    validateStepType(_stepOperationType){
+      return Object.values(OperationType).includes(_stepOperationType);
     }
-
-    recall(){
-      //TODO : wypisanie historii
-
+    // W opisie operacji w historii przechowujemy indeks kontigu oraz typ operacji 
+    addStep(_stepContigIndex, _stepOperationType){
+      
+      if (this.validateStepType(_stepOperationType)){
+        this.steps.push({'index' : _stepContigIndex, 'operationType': _stepOperationType});
+      }
+    
     }
 
 }
+
+// ALR klasa bazowa dla historii algorytmu
+// TODO: zdecydować nad implementacją polimorfizmu
+class HistoryVisualiserBasic {
+
+  constructor (_HistoryVisualizationType){
+    
+
+  }
+
+}
+
+// ALR
+class HistoryVisualiserConsole extends HistoryVisualiserBasic{
+
+
+}
+
 
 class App extends React.Component {
 
