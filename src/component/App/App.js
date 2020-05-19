@@ -77,6 +77,7 @@ handleInput(e){
 validate = () => {
   
   let lengthError = "";
+  this.setState({lengthError});
   console.log("current item " + this.state.items[0] )
 
   if (this.state.items[0] === undefined){
