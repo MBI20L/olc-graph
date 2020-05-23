@@ -11,7 +11,6 @@ import { faTrash } from '@fortawesome/free-solid-svg-icons';
 import './App.css';
 import InputList from '../InputList/InputList';
 import DefaultInputList from '../InputList/DefaultInputList';
-import OlcGraph from '../OlcGraph/OlcGraph'
 
 
 library.add(faTrash)
@@ -39,6 +38,7 @@ const HistoryVisualizationType = {
 // Klasa do zbierania i zwracania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
 class History {
 
+  /*
     constructor(_algorithmName){
       this.algorithmName = _algorithmName;
         // Tablica przechowująca indeksy kolejnych pobieranych podsekwencji
@@ -57,7 +57,7 @@ class History {
         this.steps.push({'index' : _stepContigIndex, 'operationType': _stepOperationType});
       }
     
-    }
+    } */
 
 }
 
@@ -202,7 +202,6 @@ findOverlapLength(a,b) {
 // wyświetlanie wyników na stronie.
 callFindOverlap(){
 
-
   let inputs =[];
 
   //Pobranie danych wpisywanych ręcznie
@@ -219,50 +218,97 @@ callFindOverlap(){
   console.log(inputs);
 
   let inputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
-  console.log("aaa");
-  console.log(inputs.content);
+  console.log('Długość wejściowa ' + inputLength);
+  let inputLength2 = inputs.length;
 
   let i;
   let j;
-  // macierz nxn przechowująca wagi krawędzi między grafami, 
+  let overlaping = []
+
+   // macierz nxn przechowująca wagi krawędzi między grafami, 
   // czyli długości nakładających się fragmentów obu sekwencji.
-  let overlapArray = new Array(inputLength);
-  console.log(overlapArray);
+  let overlapArray = [];
+ 
+
+ 
+    let index = Math.floor(Math.random() * inputs.length);
+    //let index = 0;
+    let maxVal = 0;
+    const randomInput = inputs[index];
+    
+    let selectedContig = randomInput;
+    console.log('contig ' + selectedContig);
+  
+  for (i=0; i<inputLength2; i++) {
+    inputs.splice(index,1);
+    inputLength = inputs.length;
+    console.log('Dlugosc po odjeciu ' + inputLength);
+    console.log('Tablica po odejmowaniu:')
+    console.log(inputs);
+
+    overlapArray.push([selectedContig,maxVal]);
+    
+    for(j=0; j<inputLength; j++){
+      overlaping[j] = this.findOverlapLength(selectedContig, inputs[j]);
+      console.log('j: ' + j )
+    }
+
+    console.log('Wartości nakładających sie odczytów:')
+    console.log(overlaping)
+    maxVal = Math.max.apply(Math, overlaping);
+    console.log(maxVal);
+
+    let currentIndex = overlaping.indexOf(maxVal) 
+    let overlapingSample = inputs[currentIndex];
+    console.log("nowy contig " + overlapingSample)
+    //overlapArray.push([overlapingSample,maxVal]);
+    
+    selectedContig = overlapingSample;
+    overlaping = [];
+    index = currentIndex;
+
+
+  }
+
+  console.log(overlapArray)
+
+
   
   // Wpierw uzupełniamy macierz nakładania się 0 i 
   // Miarą nakładania się sekwencji.
-  for(i=0; i < inputLength; i++){
+ /* for(i=0; i < inputLength; i++){
     overlapArray[i] = new Array (inputLength);
     overlapArray[i].fill(0);
-    for(j=i+1; j < inputLength; j++){
+    for(j=i+1; j < inputs.length; j++){
       let output = this.findOverlapLength(inputs[i], inputs[j] );
+      console.log('i ' + i);
+      console.log('j ' + j);
       overlapArray[i][j] = output;
+      console.log('macierz' + overlapArray[i][j]);
       console.log(output);
     }
+    
   }
-  console.log(overlapArray);
+  console.log(overlapArray); 
+  
   // Następnie przechodzimy po macierzy sekwencji, zaczynając od rekordu,
   // Od którego wpierw zaczęliśmy tworzenie macierzy nakładania.
   // Następnie przechodzimy po kolejnych sekwencjach, które najbardziej się
   // nakładają. Wypisujemy po kolei kolejne podsekwencje. 
-  // Dodać randomizację indeksu, a następnie uwzględnić kilka róznych przejść jeśli wybrany indeks nie zwraca ok wartości
-  let index = 0; 
-  let orderArray = new Array(inputLength);
-  
-  for(i=0; i< inputLength-1; i++){
-    
+  let index = 0;
+  let orderArray = new Array(inputs.length);
+  for(i=0; i< inputs.length-1; i++){
     console.log("Iteracja " + i)
-    
+    console.log(overlapArray);
     let maxVal = Math.max.apply(Math, overlapArray[index]);
-    let currentIndex = overlapArray[index].indexOf(maxVal);
-    
     console.log("Max nakładanie " + maxVal);
-    
+    let currentIndex = overlapArray[index].indexOf(maxVal);
     let nextMaxVal = Math.max.apply(Math, overlapArray[currentIndex]);
+    console.log('Next max val ' + nextMaxVal)
    
     // Proste sprawdzenie na wypadek skrajnego przypadku, gdyby z następnego
     // węzła nie można było przejść nigdzie dalej. 
-    if(!nextMaxVal && i != inputLength-2) {
+    if(!nextMaxVal && i != inputs.length-2) {
       console.log("Obsługa ślepego zaułka");
       overlapArray[index][currentIndex] = 0;
       maxVal = Math.max.apply(Math, overlapArray[index]); 
@@ -282,7 +328,7 @@ callFindOverlap(){
     // pełnej sekwencji. Będziemy dodawać kolejne podsekwencje (o indeksach 
     // wskazanych w orderArray), ale bez pierwszych maxVal znaków. 
 
-  console.log(orderArray);
+  console.log(orderArray);*/
 }
 
   render(){
