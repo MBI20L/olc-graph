@@ -181,7 +181,7 @@ getStartingindexAndValue(_inputs){
 getOverlapValues(_selectedContig, _inputs){
   let j;
   let overlaping = [];
-  if (_inputs.length != 1){
+  if (_inputs.length !== 1){
     for(j=0; j<_inputs.length; j++){
       overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
       this.showCurrentStepMsg('j: ' + j )
@@ -190,11 +190,16 @@ getOverlapValues(_selectedContig, _inputs){
   return overlaping;
 }
 
+// ALR wyszukanie kolejnego kontiga
 getNextContigIndex(_overlaping){
-  const maxValLocal = Math.max.apply(Math, _overlaping);
-  this.showCurrentStepMsg(maxValLocal);
-  const currentIndexLocal = _overlaping.indexOf(maxValLocal) 
-    
+  let maxValLocal = 0;
+  let currentIndexLocal = 0;
+  
+  if (_overlaping.length){
+    maxValLocal = Math.max.apply(Math, _overlaping);
+    this.showCurrentStepMsg(maxValLocal);
+    currentIndexLocal = _overlaping.indexOf(maxValLocal) 
+  }
   return [currentIndexLocal, maxValLocal] 
 }
 
@@ -214,9 +219,10 @@ findSequence(){
   //Przypisanie tablicy w zależności od wybranego radiobuttona
   const defaultData = this.state.selectedOption == 'option1';
   if(defaultData){
-    inputs = defaultInputs;
+    // ewentualnie użyć slice(0) aby zrobić płytką kopię
+    inputs = [...defaultInputs];
   } else {
-    inputs = myInputs;
+    inputs = [...myInputs];
   }
   this.showCurrentStepMsg("Dane wejsciowe");
   this.showCurrentStepMsg(inputs);
@@ -246,7 +252,7 @@ findSequence(){
     inputs.splice(currentIndex,1);
     currInputLength = inputs.length;
     this.showCurrentStepMsg('Dlugosc po odjeciu ' + currInputLength);
-    this.showCurrentStepMsg('Tablica po odejmowaniu:')
+    this.showCurrentStepMsg('Tablica po odejmowaniu:');
     this.showCurrentStepMsg(inputs);
 
     overlapArray.push([selectedContig,maxVal]);
@@ -254,11 +260,12 @@ findSequence(){
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
     overlaping = this.getOverlapValues(selectedContig, inputs);
     
-    this.showCurrentStepMsg('Wartości nakładających sie odczytów:')
-    this.showCurrentStepMsg(overlaping)
+    this.showCurrentStepMsg('Wartości nakładających sie odczytów:');
+    this.showCurrentStepMsg(overlaping);
     
     // ALR - wybór kolejnego kontiga
     [currentIndex, maxVal] = this.getNextContigIndex(overlaping);
+    
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("nowy contig " + overlapingSample)
     
