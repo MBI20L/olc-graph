@@ -35,47 +35,10 @@ const HistoryVisualizationType = {
   CONSOLE: 'Console'
 }
 
-// Klasa do zbierania i zwracania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
-class History {
+// Klasa do zbierania i zwracania kolejnych kroków algorytmu, na podstawie wzorca projetowego Command - ARL
+class commandHistory {
 
-  /*
-    constructor(_algorithmName){
-      this.algorithmName = _algorithmName;
-        // Tablica przechowująca indeksy kolejnych pobieranych podsekwencji
-        // W zapisie kroków dodać także informacje o tym co zrobiono (jakby np w trakcie działania odrzucono jakąś sekwencję)
-      this.steps         = new Array();
-        
-    }
-
-    validateStepType(_stepOperationType){
-      return Object.values(OperationType).includes(_stepOperationType);
-    }
-    // W opisie operacji w historii przechowujemy indeks kontigu oraz typ operacji 
-    addStep(_stepContigIndex, _stepOperationType){
-      
-      if (this.validateStepType(_stepOperationType)){
-        this.steps.push({'index' : _stepContigIndex, 'operationType': _stepOperationType});
-      }
-    
-    } */
-
-}
-
-// ALR klasa bazowa dla historii algorytmu
-// TODO: zdecydować nad implementacją polimorfizmu
-class HistoryVisualiserBasic {
-
-  constructor (_HistoryVisualizationType){
-    
-
-  }
-
-}
-
-// ALR
-class HistoryVisualiserConsole extends HistoryVisualiserBasic{
-
-
+  
 }
 
 
@@ -96,7 +59,10 @@ class App extends React.Component {
     this.addItem = this.addItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
     this.deleteAll = this.deleteAll.bind(this);
-    this.callFindOverlap = this.callFindOverlap.bind(this);
+    this.findSequence = this.findSequence.bind(this);
+    this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
+    this.getOverlapValues = this.getOverlapValues.bind(this);
+    this.getNextContigIndex = this.getNextContigIndex.bind(this);
 }
 
 handleInput(e){
@@ -200,11 +166,49 @@ findOverlapLength(a,b) {
 // Wstępny prototyp implementacji algorytmu zachłannego. 
 // Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
 // wyświetlanie wyników na stronie.
-callFindOverlap(){
+
+// ALR funkcja do ustalania indeksu startowej sekwencji 
+getStartingindexAndValue(_inputs){
+  // index - indeks startowego odczytu
+  let index = Math.floor(Math.random() * _inputs.length);
+  //let index = 0;
+  let maxVal = 0;
+  
+  return [index, maxVal]
+}
+
+// ALR - funkcja do wyliczania nakładań na sekwencje wskazane w _inputs względem sekwencji _selectedContig. 
+getOverlapValues(_selectedContig, _inputs){
+  let j;
+  let overlaping = [];
+  if (_inputs.length != 1){
+    for(j=0; j<_inputs.length; j++){
+      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+      this.showCurrentStepMsg('j: ' + j )
+    }
+  }
+  return overlaping;
+}
+
+getNextContigIndex(_overlaping){
+  const maxValLocal = Math.max.apply(Math, _overlaping);
+  this.showCurrentStepMsg(maxValLocal);
+  const currentIndexLocal = _overlaping.indexOf(maxValLocal) 
+    
+  return [currentIndexLocal, maxValLocal] 
+}
+
+// ALR wypisywanie informacji o bieżącym działaniu, wyciągnięte do oddzielnej metody aby zmieniać między
+// Konsolą a wypisaniem bezpośrednio na stronie.
+showCurrentStepMsg(_msg){
+  console.log(_msg)  
+}
+
+findSequence(){
 
   let inputs =[];
 
-  //Pobranie danych wpisywanych ręcznie
+  //Pobranie danych wpisanych ręcznie
   const myInputs = this.state.items.map((item) => item.text);
 
   //Przypisanie tablicy w zależności od wybranego radiobuttona
@@ -214,63 +218,57 @@ callFindOverlap(){
   } else {
     inputs = myInputs;
   }
-  console.log("Dane wejsciowe");
-  console.log(inputs);
+  this.showCurrentStepMsg("Dane wejsciowe");
+  this.showCurrentStepMsg(inputs);
 
-  let inputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
-  console.log('Długość wejściowa ' + inputLength);
-  let inputLength2 = inputs.length;
+  let origInputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
+  this.showCurrentStepMsg('Długość wejściowa ' + origInputLength);
+  let currInputLength = origInputLength; // ALR : informacja o bieżącej długości tablicy z podsekwencjami, na użytek pętli
 
   let i;
   let j;
   let overlaping = []
 
-   // macierz nxn przechowująca wagi krawędzi między grafami, 
+  // macierz nxn przechowująca wagi krawędzi między grafami, 
   // czyli długości nakładających się fragmentów obu sekwencji.
   let overlapArray = [];
  
+    //Pobranie indeksu startowego odczytu oraz inicjalizacja zmiennej maxValue
+    let index;
+    let maxVal;
+    [index, maxVal] = this.getStartingindexAndValue(inputs);
 
- 
-    let index = Math.floor(Math.random() * inputs.length);
-    //let index = 0;
-    let maxVal = 0;
-    const randomInput = inputs[index];
-    
-    let selectedContig = randomInput;
-    console.log('contig ' + selectedContig);
-  
-  for (i=0; i<inputLength2; i++) {
-    inputs.splice(index,1);
-    inputLength = inputs.length;
-    console.log('Dlugosc po odjeciu ' + inputLength);
-    console.log('Tablica po odejmowaniu:')
-    console.log(inputs);
+    let selectedContig = inputs[index];;
+    this.showCurrentStepMsg('contig ' + selectedContig);
+    let currentIndex = index; 
+
+  for (i=0; i<origInputLength; i++) {
+    inputs.splice(currentIndex,1);
+    currInputLength = inputs.length;
+    this.showCurrentStepMsg('Dlugosc po odjeciu ' + currInputLength);
+    this.showCurrentStepMsg('Tablica po odejmowaniu:')
+    this.showCurrentStepMsg(inputs);
 
     overlapArray.push([selectedContig,maxVal]);
     
-    for(j=0; j<inputLength; j++){
-      overlaping[j] = this.findOverlapLength(selectedContig, inputs[j]);
-      console.log('j: ' + j )
-    }
-
-    console.log('Wartości nakładających sie odczytów:')
-    console.log(overlaping)
-    maxVal = Math.max.apply(Math, overlaping);
-    console.log(maxVal);
-
-    let currentIndex = overlaping.indexOf(maxVal) 
+    // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
+    overlaping = this.getOverlapValues(selectedContig, inputs);
+    
+    this.showCurrentStepMsg('Wartości nakładających sie odczytów:')
+    this.showCurrentStepMsg(overlaping)
+    
+    // ALR - wybór kolejnego kontiga
+    [currentIndex, maxVal] = this.getNextContigIndex(overlaping);
     let overlapingSample = inputs[currentIndex];
-    console.log("nowy contig " + overlapingSample)
-    //overlapArray.push([overlapingSample,maxVal]);
+    this.showCurrentStepMsg("nowy contig " + overlapingSample)
     
     selectedContig = overlapingSample;
     overlaping = [];
     index = currentIndex;
 
-
   }
 
-  console.log(overlapArray)
+  this.showCurrentStepMsg(overlapArray)
 
 
   
@@ -375,7 +373,7 @@ callFindOverlap(){
             <div className="row">
             <div className="col-lg-12"> 
               {list}
-              <Button variant="contained" color="primary" onClick={this.callFindOverlap}>Rozpocznij</Button>
+              <Button variant="contained" color="primary" onClick={this.findSequence}>Rozpocznij</Button>
             </div> 
           </div>
             </div>
