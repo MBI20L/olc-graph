@@ -12,6 +12,7 @@ import Graph from "react-graph-vis";
 import './App.css';
 import InputList from '../InputList/InputList';
 import DefaultInputList from '../InputList/DefaultInputList';
+import GraphOlc from '../GraphOlc/GraphOlc';
 
 
 library.add(faTrash)
@@ -41,6 +42,7 @@ class commandHistory {
 
   
 }
+/*
 function GraphApp() {
   let graph = {
     nodes: [
@@ -75,7 +77,7 @@ function GraphApp() {
       }}
     />
   );
-}
+} */
 
 class App extends React.Component {
 
@@ -361,6 +363,9 @@ findSequence(){
               <Button variant="contained" color="primary" onClick={this.findSequence}>Rozpocznij</Button>
             </div> 
           </div>
+            </div>
+            <div className="col-lg-8">
+              <GraphOlc></GraphOlc>
             </div>
           </div>
           
