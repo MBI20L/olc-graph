@@ -7,7 +7,8 @@ import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-
+import ReactDOM from "react-dom";
+import Graph from "react-graph-vis";
 import './App.css';
 import InputList from '../InputList/InputList';
 import DefaultInputList from '../InputList/DefaultInputList';
@@ -40,7 +41,41 @@ class commandHistory {
 
   
 }
-
+function GraphApp() {
+  let graph = {
+    nodes: [
+      //{ id: 1, label: "Node 1", title: "node 1 tootip text" },
+      
+    ],
+    edges: [
+      //{ from: 1, to: 2 },      
+    ]
+  };
+  const options = {
+    layout: {
+      hierarchical: true
+    },
+    edges: {
+      color: "#000000"
+    },
+    height: "500px"
+  };
+  const events = {
+    select: function(event) {
+      var { nodes, edges } = event;
+    }
+  };
+  return (
+    <Graph
+      graph={graph}
+      options={options}
+      events={events}
+      getNetwork={network => {
+        //  if you want access to vis.js network api you can set the state in a parent component using this property
+      }}
+    />
+  );
+}
 
 class App extends React.Component {
 
@@ -276,64 +311,7 @@ findSequence(){
   }
 
   this.showCurrentStepMsg(overlapArray)
-
-
-  
-  // Wpierw uzupełniamy macierz nakładania się 0 i 
-  // Miarą nakładania się sekwencji.
- /* for(i=0; i < inputLength; i++){
-    overlapArray[i] = new Array (inputLength);
-    overlapArray[i].fill(0);
-    for(j=i+1; j < inputs.length; j++){
-      let output = this.findOverlapLength(inputs[i], inputs[j] );
-      console.log('i ' + i);
-      console.log('j ' + j);
-      overlapArray[i][j] = output;
-      console.log('macierz' + overlapArray[i][j]);
-      console.log(output);
-    }
-    
-  }
-  console.log(overlapArray); 
-  
-  // Następnie przechodzimy po macierzy sekwencji, zaczynając od rekordu,
-  // Od którego wpierw zaczęliśmy tworzenie macierzy nakładania.
-  // Następnie przechodzimy po kolejnych sekwencjach, które najbardziej się
-  // nakładają. Wypisujemy po kolei kolejne podsekwencje. 
-  let index = 0;
-  let orderArray = new Array(inputs.length);
-  for(i=0; i< inputs.length-1; i++){
-    console.log("Iteracja " + i)
-    console.log(overlapArray);
-    let maxVal = Math.max.apply(Math, overlapArray[index]);
-    console.log("Max nakładanie " + maxVal);
-    let currentIndex = overlapArray[index].indexOf(maxVal);
-    let nextMaxVal = Math.max.apply(Math, overlapArray[currentIndex]);
-    console.log('Next max val ' + nextMaxVal)
-   
-    // Proste sprawdzenie na wypadek skrajnego przypadku, gdyby z następnego
-    // węzła nie można było przejść nigdzie dalej. 
-    if(!nextMaxVal && i != inputs.length-2) {
-      console.log("Obsługa ślepego zaułka");
-      overlapArray[index][currentIndex] = 0;
-      maxVal = Math.max.apply(Math, overlapArray[index]); 
-      currentIndex = overlapArray[index].indexOf(maxVal);
-      console.log("Second max " + maxVal +' '+ currentIndex);
-    }
-    // Dodanie kolejnego kroku oraz wartości nakładania w kroku.
-    orderArray[i] = [currentIndex, maxVal];
-
-    console.log("current " + currentIndex);
-    index = currentIndex;
-    // Dla celów testowych wypisanie kolejnych kroków algorytmu.
-    console.log(inputs[index]);
-    
-  }
-  // TODO: utworzenie metody która na podstawie macierzy kroków
-    // pełnej sekwencji. Będziemy dodawać kolejne podsekwencje (o indeksach 
-    // wskazanych w orderArray), ale bez pierwszych maxVal znaków. 
-
-  console.log(orderArray);*/
+ 
 }
 
   render(){
@@ -389,8 +367,9 @@ findSequence(){
           
         </div>              
       </div>
+      
     );
-
+    
   }
 }
 
