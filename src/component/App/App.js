@@ -42,42 +42,8 @@ class commandHistory {
 
   
 }
-/*
-function GraphApp() {
-  let graph = {
-    nodes: [
-      //{ id: 1, label: "Node 1", title: "node 1 tootip text" },
-      
-    ],
-    edges: [
-      //{ from: 1, to: 2 },      
-    ]
-  };
-  const options = {
-    layout: {
-      hierarchical: true
-    },
-    edges: {
-      color: "#000000"
-    },
-    height: "500px"
-  };
-  const events = {
-    select: function(event) {
-      var { nodes, edges } = event;
-    }
-  };
-  return (
-    <Graph
-      graph={graph}
-      options={options}
-      events={events}
-      getNetwork={network => {
-        //  if you want access to vis.js network api you can set the state in a parent component using this property
-      }}
-    />
-  );
-} */
+
+
 
 class App extends React.Component {
 
@@ -90,7 +56,9 @@ class App extends React.Component {
             text:'',
             key: ''
         },
-        lengthError: ''
+        lengthError: '', 
+        nodes: [],// ALR zmienne do przechowywania danych grafu
+        edges: [],
     }
     this.handleInput = this.handleInput.bind(this);
     this.addItem = this.addItem.bind(this);
@@ -100,8 +68,17 @@ class App extends React.Component {
     this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
+    this.addNode = this.addNode.bind(this);
 }
 
+addNode(_edgeLabel){
+  let node = {};
+  node["id"] = this.state.nodes.length+1;
+  node["label"] = _edgeLabel;
+  node["title"] = _edgeLabel;
+  this.state.nodes.push(node);
+
+}
 handleInput(e){
     this.setState({
         currentItem: {
@@ -247,9 +224,8 @@ showCurrentStepMsg(_msg){
 }
 
 findSequence(){
-
+  
   let inputs =[];
-
   //Pobranie danych wpisanych ręcznie
   const myInputs = this.state.items.map((item) => item.text);
 
@@ -258,9 +234,11 @@ findSequence(){
   if(defaultData){
     // ewentualnie użyć slice(0) aby zrobić płytką kopię
     inputs = [...defaultInputs];
+    inputs.forEach(this.addNode) 
   } else {
     inputs = [...myInputs];
   }
+  this.showCurrentStepMsg(this.state.nodes)
   this.showCurrentStepMsg("Dane wejsciowe");
   this.showCurrentStepMsg(inputs);
 
@@ -365,7 +343,8 @@ findSequence(){
           </div>
             </div>
             <div className="col-lg-8">
-              <GraphOlc></GraphOlc>
+            <GraphOlc nodes={this.state.nodes}
+                      edges={this.state.edges}></GraphOlc>
             </div>
           </div>
           
