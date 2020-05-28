@@ -1,20 +1,21 @@
 import React from 'react'
 import Graph from 'react-graph-vis'
 
-export default class GraphOlc extends React.Component {
-  constructor (props) {
-    super(props)
-  }
 
-  graph = {
-    nodes: [
-      
-    ],
-    edges: [
-    ]
-  }
+export default function GraphOlc(props) {
 
-  options = {
+  const newNode = props.items.map( (input, id) => {return {id: id+1, title: input.text, label: input.text}});
+
+  console.log(newNode)
+
+
+  const list = newNode.map( (i) =>
+  <tr>
+    <th>{i.title}</th>
+  </tr>
+  )
+ 
+  let options = {
     layout: {
       hierarchical: true
     },
@@ -24,23 +25,26 @@ export default class GraphOlc extends React.Component {
     height: '500px'
   }
 
-  events = {
+  let events = {
     select: function (event) {
       const { nodes, edges } = event
     }
   }
 
-  render () {
+
     return (
+      <div>
       <Graph
-        graph={{ nodes: this.props.nodes, edges: this.props.edges }}
-        options={this.options}
-        events={this.events}
+        graph={{ nodes: newNode, edges: [] }}
+        options={options}
+        events={events}
         getNetwork={network => {
           //  if you want access to vis.js network api you can set the state in a parent component using this property
         }}
       />
+        
+      </div>
     )
-  }
+
 
 }

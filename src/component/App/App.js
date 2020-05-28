@@ -16,12 +16,17 @@ import GraphOlc from '../GraphOlc/GraphOlc';
 
 
 library.add(faTrash)
+/*
+{text:'AAABA'},
+{text:'AAABA'},
+{text:'AAABA'},
+{text:'AAABA'}*/
 
 const defaultInputs = [
-  'AAABA',
-  'ABAAB',
-  'BAABA',
-  'AABAB'
+  {text:'AAABA'},
+  {text:'AAABA'},
+  {text:'AAABA'},
+  {text:'AAABA'}
 ];
 
 // ALR enum dotyczący operacji wykonywanych przez algorytmy
@@ -51,7 +56,7 @@ class App extends React.Component {
     super(props);
     this.state = {
         selectedOption: "option1",
-        items: [],
+        items: defaultInputs,
         currentItem: {
             text:'',
             key: ''
@@ -59,6 +64,7 @@ class App extends React.Component {
         lengthError: '', 
         nodes: [],// ALR zmienne do przechowywania danych grafu
         edges: [],
+       
     }
     this.handleInput = this.handleInput.bind(this);
     this.addItem = this.addItem.bind(this);
@@ -68,17 +74,25 @@ class App extends React.Component {
     this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
-    this.addNode = this.addNode.bind(this);
+    //this.addNode = this.addNode.bind(this);
+    console.log(this)
 }
-
+/*
 addNode(_edgeLabel){
   let node = {};
   node["id"] = this.state.nodes.length+1;
   node["label"] = _edgeLabel;
   node["title"] = _edgeLabel;
-  this.state.nodes.push(node);
+  console.log(node)
+  const newNodes = [...this.state.nodes, node]
+  console.log('----')
+  console.log(newNodes)
+  this.setState({
+    nodes: newNodes
+  })
+  console.log(this)
+}*/
 
-}
 handleInput(e){
     this.setState({
         currentItem: {
@@ -122,9 +136,10 @@ addItem(e){
               currentItem: {
                   text: '',
                   key: ''
-              }
+              },
           })
       }
+      console.log(this)
       
     } else{
       this.state.currentItem.text = "";
@@ -152,6 +167,17 @@ handleOptionChange = changeEvent => {
   this.setState({
     selectedOption: changeEvent.target.value
   });
+
+  if(changeEvent.target.value == 'option2'){
+    this.setState({
+      items: []
+    });
+  } else {
+    this.setState({
+      items: defaultInputs
+    });
+
+  }
 };
 
 // Metoda zwracająca nakładający się fragment obu sekwencji.
@@ -234,7 +260,10 @@ findSequence(){
   if(defaultData){
     // ewentualnie użyć slice(0) aby zrobić płytką kopię
     inputs = [...defaultInputs];
-    inputs.forEach(this.addNode) 
+    let nodes = inputs.map( (input, id) => {return {id: id+1, title: input, label: input}})
+    this.setState({nodes: nodes});
+    console.log(this)
+
   } else {
     inputs = [...myInputs];
   }
@@ -315,7 +344,7 @@ findSequence(){
     const defaultData = this.state.selectedOption == 'option1';
     let list;
     if(defaultData) {
-      list = <DefaultInputList defaultInputs={defaultInputs}/>
+      list = <DefaultInputList items={this.state.items}/>
       } else {
        list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}  deleteAll={this.deleteAll}/> </div>
       }
@@ -343,8 +372,7 @@ findSequence(){
           </div>
             </div>
             <div className="col-lg-8">
-            <GraphOlc nodes={this.state.nodes}
-                      edges={this.state.edges}></GraphOlc>
+            <GraphOlc items={this.state.items}></GraphOlc>
             </div>
           </div>
           
