@@ -1,19 +1,16 @@
 import React from 'react';
-import AddElement from '../AddElement/AddElement';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import './InputList.css';
 
 
 export default function InteractiveList(props) {
 
-  const items = props.items;
-
-  const content = props.items.map((item) =>
+  const content = props.items.map((item, id) =>
   <tbody key={item.key}>
     <tr>
-      <th scope="row">1</th>
+      <th scope="row">{id+1}</th>
       <td id={item.key} value={item.text}>{item.text}</td>
-      <td><FontAwesomeIcon className="faicons" icon="trash" onClick={ ()=> {props.deleteItem(item.key)}}/></td>
+      <td className="delete"><FontAwesomeIcon className="faicons" icon="trash" onClick={ ()=> {props.deleteItem(item.key)}}/></td>
      </tr> 
   </tbody>
 );
@@ -25,12 +22,10 @@ export default function InteractiveList(props) {
       <tr>
       <th scope="col">#</th>
       <th scope="col">Odczyt</th>
-      <th scope="col"><FontAwesomeIcon className="faicons" icon="trash" onClick={ ()=> {props.deleteAll()}}></FontAwesomeIcon></th>
+      <th className="delete" scope="col"><FontAwesomeIcon className="faicons" icon="trash" onClick={ ()=> {props.deleteAll()}}></FontAwesomeIcon></th>
       </tr>
     </thead>
-    
       {content}
-
   </table>
     </div>
    

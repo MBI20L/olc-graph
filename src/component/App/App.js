@@ -4,11 +4,8 @@ import RadioGroup from '@material-ui/core/RadioGroup';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import FormControl from '@material-ui/core/FormControl';
 import Button from '@material-ui/core/Button';
-import FormLabel from '@material-ui/core/FormLabel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-import ReactDOM from "react-dom";
-import Graph from "react-graph-vis";
 import './App.css';
 import InputList from '../InputList/InputList';
 import DefaultInputList from '../InputList/DefaultInputList';
@@ -70,6 +67,7 @@ class App extends React.Component {
     this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
+    this.resetGraph = this.resetGraph.bind(this);
 }
 
 handleInput(e){
@@ -116,7 +114,11 @@ addItem(e){
       }
       
     } else{
-      this.state.currentItem.text = "";
+      this.setState({
+        currentItem: {
+          text: ''
+        }
+      })
     }
     
    
@@ -133,13 +135,15 @@ deleteItem(key){
 
 deleteAll(){
   this.setState({
-    items: []
+    items: [],
+    edges: []
   })
 }
 
 handleOptionChange = changeEvent => {
   this.setState({
-    selectedOption: changeEvent.target.value
+    selectedOption: changeEvent.target.value,
+    edges: []
   });
 
   if(changeEvent.target.value == 'option2'){
@@ -153,6 +157,12 @@ handleOptionChange = changeEvent => {
 
   }
 };
+
+resetGraph(){
+  this.setState({
+    edges: []
+  })
+}
 
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
@@ -200,7 +210,7 @@ getOverlapValues(_selectedContig, _inputs){
       // ALR: w związku ze zmianami w strukturze przechowujacej dane węzłów należy zmienić ich obsługę i wyciągać
       // je jako .text ze słownika
       //overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
-      overlaping[j] = this.findOverlapLength(_selectedContig.text, _inputs[j].text);
+      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
       this.showCurrentStepMsg('j: ' + j )
     }
   }
@@ -227,11 +237,14 @@ showCurrentStepMsg(_msg){
 }
 
 findSequence(){
-  
+
   let inputs =[];
   //Pobranie danych wpisanych ręcznie
-  const myInputs = this.state.items.map((item) => item.text);
+  inputs = this.state.items.map((item) => item.text);
+  //JP Kopia tablicy wejściowej - potrzebna do ustalenia kolejności krawędzi
+  const initialData = [...inputs]
 
+  /* JP nie jest to potrzebne, bo dane pobieramy ze stanu 
   //Przypisanie tablicy w zależności od wybranego radiobuttona
   const defaultData = this.state.selectedOption == 'option1';
   if(defaultData){
@@ -240,7 +253,7 @@ findSequence(){
   }
    else {
     inputs = [...myInputs];
-  }
+  } */
   this.showCurrentStepMsg("Dane wejsciowe");
   this.showCurrentStepMsg(inputs);
 
@@ -251,6 +264,7 @@ findSequence(){
   let i;
   let j;
   let overlaping = []
+  let orderOfEdges = []
 
   // macierz nxn przechowująca wagi krawędzi między grafami, 
   // czyli długości nakładających się fragmentów obu sekwencji.
@@ -265,17 +279,27 @@ findSequence(){
     this.showCurrentStepMsg('contig ' + selectedContig);
     let currentIndex = index; 
 
+    let edge = initialData.indexOf(selectedContig) + 1;
+    orderOfEdges.push(edge)
+   
+
   for (i=0; i<origInputLength; i++) {
     inputs.splice(currentIndex,1);
+    
     currInputLength = inputs.length;
     this.showCurrentStepMsg('Dlugosc po odjeciu ' + currInputLength);
     this.showCurrentStepMsg('Tablica po odejmowaniu:');
     this.showCurrentStepMsg(inputs);
 
+   
+
     // ALR zmiana spowodowana zmianami w inputs
     //overlapArray.push([selectedContig,maxVal]);
-    overlapArray.push([selectedContig.text,maxVal]);
+    //JP przywracam do wczesniejszego stanu bo na 
+    //początku robimy mapowanie i pozbywamy się innych kluczy
+    overlapArray.push([selectedContig,maxVal]);
     
+
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
     // overlaping zawiera dane nakładania się tylko dla bieżącego węzła
     overlaping = this.getOverlapValues(selectedContig, inputs);
@@ -287,13 +311,28 @@ findSequence(){
     
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("nowy contig " + overlapingSample)
+   
+    edge = initialData.indexOf(overlapingSample) + 1;
+    orderOfEdges.push(edge)
+  
     
     selectedContig = overlapingSample;
     overlaping = [];
     index = currentIndex;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
+
   }
 
   this.showCurrentStepMsg(overlapArray)
+
+  //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
+  let finalOrderOfEdges = []
+
+  for (let k=0; k<orderOfEdges.length-2; k++){
+    let element = {}
+    element.from = orderOfEdges[k];
+    element.to = orderOfEdges[k+1]
+    finalOrderOfEdges.push(element)
+  }
  
 }
 
@@ -311,11 +350,8 @@ findSequence(){
                       <div className="text-left mb-2" style={{ fontSize: 13, color: "red" }}>{this.state.lengthError}</div>
                   </form>
 
-      const content = this.state.checked 
-      ? <div> Content </div>
-      : null;
-
-    const defaultData = this.state.selectedOption == 'option1';
+  
+    const defaultData = this.state.selectedOption === 'option1';
     let list;
     if(defaultData) {
       list = <DefaultInputList items={this.state.items}/>
@@ -325,11 +361,12 @@ findSequence(){
     return (
       <div className="App">
         <div className="container">
-          <h1>Graf pokrycia OLC</h1>
-          <p>Metody bioinformatyki 20L</p>
-
+         <div className="mt-3">
+            <h1>Graf pokrycia OLC</h1>
+            <p>Metody bioinformatyki 20L</p>
+          </div>
           <div className="row">
-            <div className="col-lg-4">
+            <div className="col-lg-4 mt-3">
             <FormControl component="fieldset">
               <RadioGroup row aria-label="gender" name="gender1">
                 <FormControlLabel value="option1" checked={this.state.selectedOption === "option1"} 
@@ -341,11 +378,12 @@ findSequence(){
             <div className="row">
             <div className="col-lg-12"> 
               {list}
-              <Button variant="contained" color="primary" onClick={this.findSequence}>Rozpocznij</Button>
+              <Button variant="contained" color="primary" className="mr-2" onClick={this.findSequence}>Generuj graf</Button>
+              <Button variant="outlined" color="primary" className="ml-2" onClick={this.resetGraph}>Resetuj</Button>
             </div> 
           </div>
             </div>
-            <div className="col-lg-8">
+            <div className="col-lg-7 offset-lg-1">
             <GraphOlc items={this.state.items}
                       edges={this.state.edges}>
             </GraphOlc>

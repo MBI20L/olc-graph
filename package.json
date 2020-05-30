@@ -12,9 +12,9 @@
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.5.0",
     "@testing-library/user-event": "^7.2.1",
-    "@vx/network": "0.0.196",
     "@vx/group": "0.0.196",
     "@vx/mock-data": "0.0.196",
+    "@vx/network": "0.0.196",
     "@vx/scale": "0.0.196",
     "@vx/shape": "0.0.196",
     "bootstrap": "^4.4.1",
@@ -22,7 +22,8 @@
     "react-bootstrap": "^1.0.1",
     "react-dom": "^16.13.1",
     "react-graph-vis": "^1.0.5",
-    "react-scripts": "3.4.1"
+    "react-scripts": "3.4.1",
+    "react-tooltip": "^4.2.6"
   },
   "scripts": {
     "start": "react-scripts start",

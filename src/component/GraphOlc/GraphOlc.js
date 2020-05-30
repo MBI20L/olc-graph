@@ -1,20 +1,17 @@
 import React from 'react'
 import Graph from 'react-graph-vis'
+import './GraphOlc.css';
 
 
 export default function GraphOlc(props) {
   
   const nodes = props.items.map( (input, id) => {return {id: id+1, title: input.text, label: input.text}});
+  const edges = props.edges
+  console.log(edges)
   
-  const list = nodes.map( (i) =>
-  <tr>
-    <th>{i.title}</th>
-  </tr>
-  )
- 
   let options = {
     layout: {
-      hierarchical: true
+      hierarchical: false
     },
     edges: {
       color: '#000000'
@@ -30,9 +27,9 @@ export default function GraphOlc(props) {
   //return null;
   
   return (
-      <div>
+      <div className='graph'>
       <Graph
-        graph={{ nodes: nodes, edges: [] }}
+        graph={{ nodes: nodes, edges: edges }}
         options={options}
         events={events}
         getNetwork={network => {
