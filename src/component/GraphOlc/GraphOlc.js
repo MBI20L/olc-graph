@@ -3,13 +3,10 @@ import Graph from 'react-graph-vis'
 
 
 export default function GraphOlc(props) {
-
-  const newNode = props.items.map( (input, id) => {return {id: id+1, title: input.text, label: input.text}});
-
-  console.log(newNode)
-
-
-  const list = newNode.map( (i) =>
+  
+  const nodes = props.items.map( (input, id) => {return {id: id+1, title: input.text, label: input.text}});
+  
+  const list = nodes.map( (i) =>
   <tr>
     <th>{i.title}</th>
   </tr>
@@ -30,12 +27,12 @@ export default function GraphOlc(props) {
       const { nodes, edges } = event
     }
   }
-
-
-    return (
+  //return null;
+  
+  return (
       <div>
       <Graph
-        graph={{ nodes: newNode, edges: [] }}
+        graph={{ nodes: nodes, edges: [] }}
         options={options}
         events={events}
         getNetwork={network => {
@@ -44,7 +41,7 @@ export default function GraphOlc(props) {
       />
         
       </div>
-    )
+    )//*/
 
 
 }

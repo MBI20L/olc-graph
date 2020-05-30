@@ -16,17 +16,14 @@ import GraphOlc from '../GraphOlc/GraphOlc';
 
 
 library.add(faTrash)
-/*
-{text:'AAABA'},
-{text:'AAABA'},
-{text:'AAABA'},
-{text:'AAABA'}*/
 
+// ALR nie jestem pewien czy koniecznie podoba mi się ta implementacja jako słownik,
+// z punktu widzania tworzenia kodu jest, szczególnie bez kontroli typów, błędogenna
 const defaultInputs = [
   {text:'AAABA'},
-  {text:'AAABA'},
-  {text:'AAABA'},
-  {text:'AAABA'}
+  {text:'ABAAB'},
+  {text:'BAABA'},
+  {text:'AABAB'}
 ];
 
 // ALR enum dotyczący operacji wykonywanych przez algorytmy
@@ -44,7 +41,6 @@ const HistoryVisualizationType = {
 
 // Klasa do zbierania i zwracania kolejnych kroków algorytmu, na podstawie wzorca projetowego Command - ARL
 class commandHistory {
-
   
 }
 
@@ -74,24 +70,7 @@ class App extends React.Component {
     this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
-    //this.addNode = this.addNode.bind(this);
-    console.log(this)
 }
-/*
-addNode(_edgeLabel){
-  let node = {};
-  node["id"] = this.state.nodes.length+1;
-  node["label"] = _edgeLabel;
-  node["title"] = _edgeLabel;
-  console.log(node)
-  const newNodes = [...this.state.nodes, node]
-  console.log('----')
-  console.log(newNodes)
-  this.setState({
-    nodes: newNodes
-  })
-  console.log(this)
-}*/
 
 handleInput(e){
     this.setState({
@@ -106,7 +85,6 @@ validate = () => {
   
   let lengthError = "";
   this.setState({lengthError});
-  console.log("current item " + this.state.items[0] )
 
   if (this.state.items[0] === undefined){
     return true;
@@ -124,11 +102,8 @@ validate = () => {
 addItem(e){
     e.preventDefault();
     const isValid = this.validate();
-    console.log(isValid)
     if (isValid) {
-      console.log(this.state);
       const newItem = this.state.currentItem;
-      console.log(newItem);
       if(newItem.text !== ''){
           const newItems = [...this.state.items, newItem];
           this.setState({
@@ -139,7 +114,6 @@ addItem(e){
               },
           })
       }
-      console.log(this)
       
     } else{
       this.state.currentItem.text = "";
@@ -223,7 +197,10 @@ getOverlapValues(_selectedContig, _inputs){
   let overlaping = [];
   if (_inputs.length !== 1){
     for(j=0; j<_inputs.length; j++){
-      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+      // ALR: w związku ze zmianami w strukturze przechowujacej dane węzłów należy zmienić ich obsługę i wyciągać
+      // je jako .text ze słownika
+      //overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+      overlaping[j] = this.findOverlapLength(_selectedContig.text, _inputs[j].text);
       this.showCurrentStepMsg('j: ' + j )
     }
   }
@@ -260,14 +237,10 @@ findSequence(){
   if(defaultData){
     // ewentualnie użyć slice(0) aby zrobić płytką kopię
     inputs = [...defaultInputs];
-    let nodes = inputs.map( (input, id) => {return {id: id+1, title: input, label: input}})
-    this.setState({nodes: nodes});
-    console.log(this)
-
-  } else {
+  }
+   else {
     inputs = [...myInputs];
   }
-  this.showCurrentStepMsg(this.state.nodes)
   this.showCurrentStepMsg("Dane wejsciowe");
   this.showCurrentStepMsg(inputs);
 
@@ -284,11 +257,11 @@ findSequence(){
   let overlapArray = [];
  
     //Pobranie indeksu startowego odczytu oraz inicjalizacja zmiennej maxValue
-    let index;
+    let index;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
     let maxVal;
     [index, maxVal] = this.getStartingindexAndValue(inputs);
 
-    let selectedContig = inputs[index];;
+    let selectedContig = inputs[index];
     this.showCurrentStepMsg('contig ' + selectedContig);
     let currentIndex = index; 
 
@@ -299,11 +272,13 @@ findSequence(){
     this.showCurrentStepMsg('Tablica po odejmowaniu:');
     this.showCurrentStepMsg(inputs);
 
-    overlapArray.push([selectedContig,maxVal]);
+    // ALR zmiana spowodowana zmianami w inputs
+    //overlapArray.push([selectedContig,maxVal]);
+    overlapArray.push([selectedContig.text,maxVal]);
     
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
+    // overlaping zawiera dane nakładania się tylko dla bieżącego węzła
     overlaping = this.getOverlapValues(selectedContig, inputs);
-    
     this.showCurrentStepMsg('Wartości nakładających sie odczytów:');
     this.showCurrentStepMsg(overlaping);
     
@@ -315,8 +290,7 @@ findSequence(){
     
     selectedContig = overlapingSample;
     overlaping = [];
-    index = currentIndex;
-
+    index = currentIndex;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
   }
 
   this.showCurrentStepMsg(overlapArray)
@@ -372,7 +346,9 @@ findSequence(){
           </div>
             </div>
             <div className="col-lg-8">
-            <GraphOlc items={this.state.items}></GraphOlc>
+            <GraphOlc items={this.state.items}
+                      edges={this.state.edges}>
+            </GraphOlc>
             </div>
           </div>
           
