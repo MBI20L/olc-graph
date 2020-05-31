@@ -23,6 +23,7 @@ const defaultInputs = [
   {text:'AABAB'}
 ];
 
+
 // ALR enum dotyczący operacji wykonywanych przez algorytmy
 const operationType = {
   SELECTION: "Subsequence selected",//dodanie podsekwencji do sekwencji
@@ -57,6 +58,7 @@ class App extends React.Component {
         lengthError: '', 
         nodes: [],// ALR zmienne do przechowywania danych grafu
         edges: [],
+        isResult: false
        
     }
     this.handleInput = this.handleInput.bind(this);
@@ -211,7 +213,6 @@ getOverlapValues(_selectedContig, _inputs){
       // je jako .text ze słownika
       //overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
       overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
-      this.showCurrentStepMsg('j: ' + j )
     }
   }
   return overlaping;
@@ -233,10 +234,19 @@ getNextContigIndex(_overlaping){
 // ALR wypisywanie informacji o bieżącym działaniu, wyciągnięte do oddzielnej metody aby zmieniać między
 // Konsolą a wypisaniem bezpośrednio na stronie.
 showCurrentStepMsg(_msg){
+  if (typeof _msg === 'object'){
+    _msg = JSON.stringify(_msg)
+  }
+  document.getElementById('output-message').innerHTML += _msg + '</br>';
   console.log(_msg)  
 }
 
 findSequence(){
+  //JP czyszczenie wyświetlanych komunikatów
+  document.getElementById('output-message').innerHTML = '';
+  this.setState({
+    isResult: true
+  })
 
   let inputs =[];
   //Pobranie danych wpisanych ręcznie
@@ -333,6 +343,9 @@ findSequence(){
     element.to = orderOfEdges[k+1]
     finalOrderOfEdges.push(element)
   }
+  this.setState({
+    edges: finalOrderOfEdges
+  })
  
 }
 
@@ -358,6 +371,12 @@ findSequence(){
       } else {
        list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}  deleteAll={this.deleteAll}/> </div>
       }
+
+    const isResult = this.state.isResult;
+    let resultMsgHeader;
+    if(isResult){
+      resultMsgHeader = <p className="text-left header-message">Przebieg algorytmu:</p>    
+    }
     return (
       <div className="App">
         <div className="container">
@@ -384,13 +403,18 @@ findSequence(){
           </div>
             </div>
             <div className="col-lg-7 offset-lg-1">
+              
             <GraphOlc items={this.state.items}
                       edges={this.state.edges}>
             </GraphOlc>
             </div>
           </div>
-          
-          
+          <div className="row">
+            <div className="mt-5 col-lg-12">
+               {resultMsgHeader}
+               <div id="output-message" className="text-left overflow-auto message mb-5"></div>
+            </div>
+          </div> 
         </div>              
       </div>
       
