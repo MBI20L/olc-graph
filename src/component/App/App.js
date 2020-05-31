@@ -282,7 +282,7 @@ findSequence(){
     let edge = initialData.indexOf(selectedContig) + 1;
     orderOfEdges.push(edge)
     let finalSequence = "";
-    finalSequence = this.updateFinalSequence(selectedContig,maxVal)
+    finalSequence = this.updateFinalSequence(selectedContig, maxVal, finalSequence)
       
   for (i=0; i<origInputLength-1; i++) {
    // this.updateFinalSequence(selectedContig, maxVal);
@@ -294,7 +294,6 @@ findSequence(){
 
     overlapArray.push([selectedContig,maxVal]);
     
-
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
      overlaping = this.getOverlapValues(selectedContig, inputs);
     this.showCurrentStepMsg('Wartości nakładania się kolejnych odczytów:');
@@ -312,7 +311,7 @@ findSequence(){
     
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("Kontig o największej wartości nakładania: " + overlapingSample)
-    finalSequence = this.updateFinalSequence(selectedContig,maxVal)
+    finalSequence = this.updateFinalSequence(overlapingSample,maxVal, finalSequence)
     edge = initialData.indexOf(overlapingSample) + 1;
     orderOfEdges.push(edge)
     
@@ -340,11 +339,10 @@ addEdgesToGraph(_orderOfEdges){
 }
 
 // ALR na bieżąco tworzenie nowej sekwencji
-updateFinalSequence(_newContig, _overlapValue){
-  let finalSeqTmp = []
-  finalSeqTmp += _newContig.substring(_overlapValue)
-  finalSeq += finalSeqTmp
-  return finalSeq
+updateFinalSequence(_newContig, _overlapValue, _originalSequence){
+  let finalSeqTmp = _originalSequence;
+  finalSeqTmp = finalSeqTmp + " " + _newContig.substring(_overlapValue);
+  return finalSeqTmp;
 }
   render(){
 
