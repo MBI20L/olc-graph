@@ -273,9 +273,9 @@ findSequence(){
 
     let edge = initialData.indexOf(selectedContig) + 1;
     orderOfEdges.push(edge)
-      
-  for (i=0; i<origInputLength-1; i++) {
-    this.updateFinalSequence(selectedContig, maxVal);
+    let finalSequence = "";
+    finalSequence = this.updateFinalSequence(selectedContig, maxVal, finalSequence);
+    for (i=0; i<origInputLength-1; i++) {
     inputs.splice(currentIndex,1);
     currInputLength = inputs.length;
     this.showCurrentStepMsg('Ilość pozostałych podsekwencji: ' + currInputLength);
@@ -284,7 +284,6 @@ findSequence(){
 
     overlapArray.push([selectedContig,maxVal]);
     
-
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
      overlaping = this.getOverlapValues(selectedContig, inputs);
     this.showCurrentStepMsg('Wartości nakładania się kolejnych odczytów:');
@@ -302,14 +301,15 @@ findSequence(){
     
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("Kontig o największej wartości nakładania: " + overlapingSample)
-       
+    finalSequence = this.updateFinalSequence(selectedContig, maxVal, finalSequence);   
     edge = initialData.indexOf(overlapingSample) + 1;
     orderOfEdges.push(edge)
     
     selectedContig = overlapingSample;
     overlaping = [];
   }
-  this.updateFinalSequence(selectedContig, maxVal);  
+  
+  this.setState({finalSequence: finalSequence});
   //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
   this.addEdgesToGraph(orderOfEdges);
   this.showCurrentStepMsg("Pełna sekwencja: " + this.state.finalSequence)
@@ -330,11 +330,16 @@ addEdgesToGraph(_orderOfEdges){
 }
 
 // ALR na bieżąco tworzenie nowej sekwencji
-updateFinalSequence(_newContig, _overlapValue){
-  let finalSeqTmp = this.state.finalSequence;
-  finalSeqTmp += _newContig.substring(_overlapValue)
-  this.setState({finalSequence: finalSeqTmp})
-}
+updateFinalSequence(_newContig, _overlapValue, _origSequence){
+  let finalSeqTmp = _origSequence;
+  this.showCurrentStepMsg('MAMY ' + finalSeqTmp)
+  let addSubstr = _newContig.substring(_overlapValue);
+  this.showCurrentStepMsg('DODAJEMY ' + addSubstr)
+  finalSeqTmp = finalSeqTmp + addSubstr
+  this.showCurrentStepMsg('OTRZYMUJEMY ' + finalSeqTmp)
+  return finalSeqTmp;
+  }
+  
   render(){
 
     const inputForm = <form id="input-form" onSubmit={this.addItem}>
