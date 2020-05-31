@@ -70,6 +70,8 @@ class App extends React.Component {
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
     this.resetGraph = this.resetGraph.bind(this);
+    this.handleNext = this.handleNext.bind(this);
+    this.handlePrev = this.handlePrev.bind(this);
 }
 
 handleInput(e){
@@ -165,6 +167,15 @@ resetGraph(){
     edges: []
   })
 }
+
+handleNext(){
+
+}
+
+handlePrev(){
+  
+}
+
 
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
@@ -399,6 +410,9 @@ findSequence(){
               {list}
               <Button variant="contained" color="primary" className="mr-2" onClick={this.findSequence}>Generuj graf</Button>
               <Button variant="outlined" color="primary" className="ml-2" onClick={this.resetGraph}>Resetuj</Button>
+
+              <Button variant="outlined" color="primary" className="ml-2 mt-4" onClick={this.handleNext}>Następny krok</Button>
+              <Button variant="outlined" color="primary" className="ml-2 mt-4" onClick={this.handlePrev}>Poprzedni krok</Button>
             </div> 
           </div>
             </div>
