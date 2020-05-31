@@ -21,6 +21,8 @@ const defaultInputs = [
   {text:'AABAB'}
 ];
 
+let finalSeq=[]
+
 class App extends React.Component {
 
   constructor(props) {
@@ -191,8 +193,7 @@ findOverlapLength(a,b) {
 // ALR funkcja do ustalania indeksu startowej sekwencji 
 getStartingindexAndValue(_inputs){
   // index - indeks startowego odczytu
-  //let index = Math.floor(Math.random() * _inputs.length);
-  let index = 0;
+  let index = Math.floor(Math.random() * _inputs.length);
   let maxVal = 0;
   
   return [index, maxVal]
@@ -233,9 +234,16 @@ showCurrentStepMsg(_msg){
   console.log(_msg)  
 }
 
+showFinalSeq(_msg){
+  document.getElementById('final-seq').innerHTML += "Pełna sekwencja: " + _msg;
+}
+
 findSequence(){
+
   //JP czyszczenie wyświetlanych komunikatów
   document.getElementById('output-message').innerHTML = '';
+  document.getElementById('final-seq').innerHTML = '';
+  finalSeq =[]
   this.setState({
     isResult: true
   })
@@ -274,8 +282,10 @@ findSequence(){
     let edge = initialData.indexOf(selectedContig) + 1;
     orderOfEdges.push(edge)
     let finalSequence = "";
-    finalSequence = this.updateFinalSequence(selectedContig, maxVal, finalSequence);
-    for (i=0; i<origInputLength-1; i++) {
+    finalSequence = this.updateFinalSequence(selectedContig,maxVal)
+      
+  for (i=0; i<origInputLength-1; i++) {
+   // this.updateFinalSequence(selectedContig, maxVal);
     inputs.splice(currentIndex,1);
     currInputLength = inputs.length;
     this.showCurrentStepMsg('Ilość pozostałych podsekwencji: ' + currInputLength);
@@ -284,6 +294,7 @@ findSequence(){
 
     overlapArray.push([selectedContig,maxVal]);
     
+
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
      overlaping = this.getOverlapValues(selectedContig, inputs);
     this.showCurrentStepMsg('Wartości nakładania się kolejnych odczytów:');
@@ -301,7 +312,7 @@ findSequence(){
     
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("Kontig o największej wartości nakładania: " + overlapingSample)
-    finalSequence = this.updateFinalSequence(selectedContig, maxVal, finalSequence);   
+    finalSequence = this.updateFinalSequence(selectedContig,maxVal)
     edge = initialData.indexOf(overlapingSample) + 1;
     orderOfEdges.push(edge)
     
@@ -309,10 +320,9 @@ findSequence(){
     overlaping = [];
   }
   
-  this.setState({finalSequence: finalSequence});
   //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
   this.addEdgesToGraph(orderOfEdges);
-  this.showCurrentStepMsg("Pełna sekwencja: " + this.state.finalSequence)
+  this.showFinalSeq(finalSequence)
 }
 
 //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
@@ -330,16 +340,12 @@ addEdgesToGraph(_orderOfEdges){
 }
 
 // ALR na bieżąco tworzenie nowej sekwencji
-updateFinalSequence(_newContig, _overlapValue, _origSequence){
-  let finalSeqTmp = _origSequence;
-  this.showCurrentStepMsg('MAMY ' + finalSeqTmp)
-  let addSubstr = _newContig.substring(_overlapValue);
-  this.showCurrentStepMsg('DODAJEMY ' + addSubstr)
-  finalSeqTmp = finalSeqTmp + addSubstr
-  this.showCurrentStepMsg('OTRZYMUJEMY ' + finalSeqTmp)
-  return finalSeqTmp;
-  }
-  
+updateFinalSequence(_newContig, _overlapValue){
+  let finalSeqTmp = []
+  finalSeqTmp += _newContig.substring(_overlapValue)
+  finalSeq += finalSeqTmp
+  return finalSeq
+}
   render(){
 
     const inputForm = <form id="input-form" onSubmit={this.addItem}>
@@ -396,7 +402,7 @@ updateFinalSequence(_newContig, _overlapValue, _origSequence){
           </div>
             </div>
             <div className="col-lg-7 offset-lg-1">
-              
+            <div id="final-seq" className="text-left header-message"></div>
             <GraphOlc items={this.state.items}
                       edges={this.state.edges}>
             </GraphOlc>
@@ -405,7 +411,7 @@ updateFinalSequence(_newContig, _overlapValue, _origSequence){
           <div className="row">
             <div className="mt-5 col-lg-12">
                {resultMsgHeader}
-               <div id="output-message" className="text-left overflow-auto message mb-5"></div>
+               <div id="output-message" className="text-left overflow-auto message mb-3"></div>
             </div>
           </div> 
         </div>              
