@@ -13,36 +13,13 @@ import GraphOlc from '../GraphOlc/GraphOlc';
 
 
 library.add(faTrash)
-
-// ALR nie jestem pewien czy koniecznie podoba mi się ta implementacja jako słownik,
-// z punktu widzania tworzenia kodu jest, szczególnie bez kontroli typów, błędogenna
+// Wartości domyślne
 const defaultInputs = [
   {text:'AAABA'},
   {text:'ABAAB'},
   {text:'BAABA'},
   {text:'AABAB'}
 ];
-
-
-// ALR enum dotyczący operacji wykonywanych przez algorytmy
-const operationType = {
-  SELECTION: "Subsequence selected",//dodanie podsekwencji do sekwencji
-  REMOVAL:   "Sequence reverted",// wycofanie podsekwencji
-  OVERLAP:   "Overlaps calculation" // wyznaczenie nakładania konkretnej podsekwencji 
-  
-}
-
-// ALR enum opisujący możliwe opcje wyświetlania danych z historii algorytmu 
-const HistoryVisualizationType = {
-  CONSOLE: 'Console'
-}
-
-// Klasa do zbierania i zwracania kolejnych kroków algorytmu, na podstawie wzorca projetowego Command - ARL
-class commandHistory {
-  
-}
-
-
 
 class App extends React.Component {
 
@@ -58,6 +35,8 @@ class App extends React.Component {
         lengthError: '', 
         nodes: [],// ALR zmienne do przechowywania danych grafu
         edges: [],
+        finalOrderOfEdges: [], //wszystkie ustalone krawędzie, na potrzeby historii
+        finalSequence: '',
         isResult: false
        
     }
@@ -72,6 +51,8 @@ class App extends React.Component {
     this.resetGraph = this.resetGraph.bind(this);
     this.handleNext = this.handleNext.bind(this);
     this.handlePrev = this.handlePrev.bind(this);
+    this.addEdgesToGraph = this.addEdgesToGraph.bind(this);
+    this.updateFinalSequence = this.updateFinalSequence.bind(this);
 }
 
 handleInput(e){
@@ -91,8 +72,8 @@ validate = () => {
   if (this.state.items[0] === undefined){
     return true;
   } else if (this.state.currentItem.text.length !== this.state.items[0].text.length) {
-    console.log("wymiar " + this.state.currentItem.text.length)
-    console.log("wymiar " + this.state.items[0].text.length)
+    console.log("Wymiar " + this.state.currentItem.text.length)
+    console.log("Wymiar " + this.state.items[0].text.length)
     lengthError = 'Odczyty muszą mieć te same wymiary! Wprowadź daną ponownie.';
     this.setState({lengthError});
     return false;
@@ -168,16 +149,26 @@ resetGraph(){
   })
 }
 
+//ALR: przedstawienie kolejnej krawędzi grafu
 handleNext(){
-
+  if (this.state.edges.length < this.state.finalOrderOfEdges.length){
+    let newEdges = [...this.state.edges];
+    newEdges.push(this.state.finalOrderOfEdges[newEdges.length]);
+    this.setState({edges: newEdges});
+  }
 }
 
+//ALR cofnięcie historii
 handlePrev(){
-  
+  if(this.state.edges){
+    let newEdges = [...this.state.edges];
+    newEdges.pop();
+    this.setState({edges: newEdges})
+  }
 }
 
 
-// Metoda zwracająca nakładający się fragment obu sekwencji.
+// Metoda zwracająca nakładający się fragment dwóch sekwencji.
  findOverlap(a, b) {
    
   if (b.length === 0) {
@@ -187,49 +178,40 @@ handlePrev(){
   if (a.endsWith(b)) {
     return b;
   }
-  // Opcjonalne sprawdzanie nakładanie się z lewej strony,
-  // ale na razie wystarczy nam sprawdzanie prawostronne.
-  //if (a.indexOf(b) >= 0) {
-   // return b;
-  //}
-
   return this.findOverlap(a, b.substring(0, b.length - 1));  
 }
-// Metoda zwracająca długość nakładającego się fragmentu obu sekwencji.
+
+// Metoda zwracająca długość nakładającego się fragmentu dwóch sekwencji.
 findOverlapLength(a,b) {
   return this.findOverlap(a, b).length;
 }
 
-// Wstępny prototyp implementacji algorytmu zachłannego. 
-// Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
-// wyświetlanie wyników na stronie.
+// Implementacja algorytmu zachłannego 
 
 // ALR funkcja do ustalania indeksu startowej sekwencji 
 getStartingindexAndValue(_inputs){
   // index - indeks startowego odczytu
-  let index = Math.floor(Math.random() * _inputs.length);
-  //let index = 0;
+  //let index = Math.floor(Math.random() * _inputs.length);
+  let index = 0;
   let maxVal = 0;
   
   return [index, maxVal]
 }
 
-// ALR - funkcja do wyliczania nakładań na sekwencje wskazane w _inputs względem sekwencji _selectedContig. 
+// ALR - funkcja do wyliczania nakładań na sekwencje wskazane w _inputs względem wybranej
+// sekwencji _selectedContig. 
 getOverlapValues(_selectedContig, _inputs){
   let j;
   let overlaping = [];
-  if (_inputs.length !== 1){
-    for(j=0; j<_inputs.length; j++){
-      // ALR: w związku ze zmianami w strukturze przechowujacej dane węzłów należy zmienić ich obsługę i wyciągać
-      // je jako .text ze słownika
-      //overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
-      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
-    }
+  for(j=0; j<_inputs.length; j++){
+    overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
   }
   return overlaping;
 }
 
-// ALR wyszukanie kolejnego kontiga
+// ALR: wyszukanie kolejnej podsekwencji do dodania do głównej sekwencji,
+// na podstawie informacji o wartościach nakładania się.
+// Zwraca wartosść maksymalną oraz indeks wskazujący na rekord w tablicy z pozostałymi podsekwencjami.
 getNextContigIndex(_overlaping){
   let maxValLocal = 0;
   let currentIndexLocal = 0;
@@ -242,8 +224,7 @@ getNextContigIndex(_overlaping){
   return [currentIndexLocal, maxValLocal] 
 }
 
-// ALR wypisywanie informacji o bieżącym działaniu, wyciągnięte do oddzielnej metody aby zmieniać między
-// Konsolą a wypisaniem bezpośrednio na stronie.
+// ALR wypisywanie informacji o bieżącym działaniu.
 showCurrentStepMsg(_msg){
   if (typeof _msg === 'object'){
     _msg = JSON.stringify(_msg)
@@ -258,108 +239,102 @@ findSequence(){
   this.setState({
     isResult: true
   })
-
+  this.setState({edges:[], finalOrderOfEdges:[], finalSequence: ''});
   let inputs =[];
-  //Pobranie danych wpisanych ręcznie
+  //Pobranie danych
   inputs = this.state.items.map((item) => item.text);
   //JP Kopia tablicy wejściowej - potrzebna do ustalenia kolejności krawędzi
   const initialData = [...inputs]
 
-  /* JP nie jest to potrzebne, bo dane pobieramy ze stanu 
-  //Przypisanie tablicy w zależności od wybranego radiobuttona
-  const defaultData = this.state.selectedOption == 'option1';
-  if(defaultData){
-    // ewentualnie użyć slice(0) aby zrobić płytką kopię
-    inputs = [...defaultInputs];
-  }
-   else {
-    inputs = [...myInputs];
-  } */
-  this.showCurrentStepMsg("Dane wejsciowe");
+  this.showCurrentStepMsg("Startowe podsekwencje:");
   this.showCurrentStepMsg(inputs);
 
-  let origInputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
-  this.showCurrentStepMsg('Długość wejściowa ' + origInputLength);
+  let origInputLength = inputs.length;
+  this.showCurrentStepMsg('Rozmiar tablicy z podsekwencjami: ' + origInputLength);
   let currInputLength = origInputLength; // ALR : informacja o bieżącej długości tablicy z podsekwencjami, na użytek pętli
 
   let i;
   let j;
+  // Tablica overlaping zawiera wartości nakładania się pozostałych do analizy węzłów względem bieżąco analizowanego.
   let overlaping = []
   let orderOfEdges = []
 
-  // macierz nxn przechowująca wagi krawędzi między grafami, 
-  // czyli długości nakładających się fragmentów obu sekwencji.
+  // Macierz przechowująca kolejno wybrane przez algorytm węzły, łącznie z ich oceną.
   let overlapArray = [];
  
     //Pobranie indeksu startowego odczytu oraz inicjalizacja zmiennej maxValue
-    let index;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
+    let index;
     let maxVal;
     [index, maxVal] = this.getStartingindexAndValue(inputs);
 
     let selectedContig = inputs[index];
-    this.showCurrentStepMsg('contig ' + selectedContig);
+    this.showCurrentStepMsg('Startowy kontig: ' + selectedContig);
     let currentIndex = index; 
 
     let edge = initialData.indexOf(selectedContig) + 1;
     orderOfEdges.push(edge)
-   
-
-  for (i=0; i<origInputLength; i++) {
+      
+  for (i=0; i<origInputLength-1; i++) {
+    this.updateFinalSequence(selectedContig, maxVal);
     inputs.splice(currentIndex,1);
-    
     currInputLength = inputs.length;
-    this.showCurrentStepMsg('Dlugosc po odjeciu ' + currInputLength);
-    this.showCurrentStepMsg('Tablica po odejmowaniu:');
+    this.showCurrentStepMsg('Ilość pozostałych podsekwencji: ' + currInputLength);
+    this.showCurrentStepMsg('Pozostałe podsekwencje:');
     this.showCurrentStepMsg(inputs);
 
-   
-
-    // ALR zmiana spowodowana zmianami w inputs
-    //overlapArray.push([selectedContig,maxVal]);
-    //JP przywracam do wczesniejszego stanu bo na 
-    //początku robimy mapowanie i pozbywamy się innych kluczy
     overlapArray.push([selectedContig,maxVal]);
     
 
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
-    // overlaping zawiera dane nakładania się tylko dla bieżącego węzła
-    overlaping = this.getOverlapValues(selectedContig, inputs);
-    this.showCurrentStepMsg('Wartości nakładających sie odczytów:');
+     overlaping = this.getOverlapValues(selectedContig, inputs);
+    this.showCurrentStepMsg('Wartości nakładania się kolejnych odczytów:');
     this.showCurrentStepMsg(overlaping);
     
     // ALR - wybór kolejnego kontiga
     [currentIndex, maxVal] = this.getNextContigIndex(overlaping);
     
+    // ALR uwzględnienie sytuacji, że nie ma już pasujących sekwencji
+    if (maxVal == 0)
+    {
+      this.showCurrentStepMsg("Brak pasujących sekwencji!")
+      break;  
+    }
+    
     let overlapingSample = inputs[currentIndex];
-    this.showCurrentStepMsg("nowy contig " + overlapingSample)
-   
+    this.showCurrentStepMsg("Kontig o największej wartości nakładania: " + overlapingSample)
+       
     edge = initialData.indexOf(overlapingSample) + 1;
     orderOfEdges.push(edge)
-  
     
     selectedContig = overlapingSample;
     overlaping = [];
-    index = currentIndex;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
-
   }
-
-  this.showCurrentStepMsg(overlapArray)
-
+  this.updateFinalSequence(selectedContig, maxVal);  
   //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
-  let finalOrderOfEdges = []
+  this.addEdgesToGraph(orderOfEdges);
+  this.showCurrentStepMsg("Pełna sekwencja: " + this.state.finalSequence)
+}
 
-  for (let k=0; k<orderOfEdges.length-2; k++){
-    let element = {}
-    element.from = orderOfEdges[k];
-    element.to = orderOfEdges[k+1]
+//JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
+addEdgesToGraph(_orderOfEdges){
+  let finalOrderOfEdges = []
+  this.showCurrentStepMsg(_orderOfEdges);
+  for (let k=0; k<_orderOfEdges.length-1; k++){
+    let element = {};
+    element.from = _orderOfEdges[k];
+    element.to = _orderOfEdges[k+1]
     finalOrderOfEdges.push(element)
   }
   this.setState({
-    edges: finalOrderOfEdges
-  })
- 
+    edges: finalOrderOfEdges, finalOrderOfEdges : finalOrderOfEdges}); 
 }
 
+// ALR na bieżąco tworzenie nowej sekwencji
+updateFinalSequence(_newContig, _overlapValue){
+  let finalSeqTmp = this.state.finalSequence;
+  finalSeqTmp += _newContig.substring(_overlapValue)
+  this.setState({finalSequence: finalSeqTmp})
+}
   render(){
 
     const inputForm = <form id="input-form" onSubmit={this.addItem}>
@@ -373,7 +348,6 @@ findSequence(){
                       </div>
                       <div className="text-left mb-2" style={{ fontSize: 13, color: "red" }}>{this.state.lengthError}</div>
                   </form>
-
   
     const defaultData = this.state.selectedOption === 'option1';
     let list;
