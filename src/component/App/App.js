@@ -23,6 +23,7 @@ const defaultInputs = [
   {text:'AABAB'}
 ];
 
+
 // ALR enum dotyczący operacji wykonywanych przez algorytmy
 const operationType = {
   SELECTION: "Subsequence selected",//dodanie podsekwencji do sekwencji
@@ -57,7 +58,7 @@ class App extends React.Component {
         lengthError: '', 
         nodes: [],// ALR zmienne do przechowywania danych grafu
         edges: [],
-        finalSequence: '',
+        isResult: false
        
     }
     this.handleInput = this.handleInput.bind(this);
@@ -69,7 +70,8 @@ class App extends React.Component {
     this.getOverlapValues = this.getOverlapValues.bind(this);
     this.getNextContigIndex = this.getNextContigIndex.bind(this);
     this.resetGraph = this.resetGraph.bind(this);
-    this.addEdgesToGraph = this.addEdgesToGraph.bind(this);
+    this.handleNext = this.handleNext.bind(this);
+    this.handlePrev = this.handlePrev.bind(this);
 }
 
 handleInput(e){
@@ -122,6 +124,9 @@ addItem(e){
         }
       })
     }
+    
+   
+
 }
 
 deleteItem(key){
@@ -163,6 +168,15 @@ resetGraph(){
   })
 }
 
+handleNext(){
+
+}
+
+handlePrev(){
+  
+}
+
+
 // Metoda zwracająca nakładający się fragment obu sekwencji.
  findOverlap(a, b) {
    
@@ -193,8 +207,8 @@ findOverlapLength(a,b) {
 // ALR funkcja do ustalania indeksu startowej sekwencji 
 getStartingindexAndValue(_inputs){
   // index - indeks startowego odczytu
-  //let index = Math.floor(Math.random() * _inputs.length);
-  let index = 0;
+  let index = Math.floor(Math.random() * _inputs.length);
+  //let index = 0;
   let maxVal = 0;
   
   return [index, maxVal]
@@ -204,9 +218,13 @@ getStartingindexAndValue(_inputs){
 getOverlapValues(_selectedContig, _inputs){
   let j;
   let overlaping = [];
-  for(j=0; j<_inputs.length; j++){
-    overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
-    this.showCurrentStepMsg('j: ' + j )
+  if (_inputs.length !== 1){
+    for(j=0; j<_inputs.length; j++){
+      // ALR: w związku ze zmianami w strukturze przechowujacej dane węzłów należy zmienić ich obsługę i wyciągać
+      // je jako .text ze słownika
+      //overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+    }
   }
   return overlaping;
 }
@@ -227,10 +245,19 @@ getNextContigIndex(_overlaping){
 // ALR wypisywanie informacji o bieżącym działaniu, wyciągnięte do oddzielnej metody aby zmieniać między
 // Konsolą a wypisaniem bezpośrednio na stronie.
 showCurrentStepMsg(_msg){
+  if (typeof _msg === 'object'){
+    _msg = JSON.stringify(_msg)
+  }
+  document.getElementById('output-message').innerHTML += _msg + '</br>';
   console.log(_msg)  
 }
 
 findSequence(){
+  //JP czyszczenie wyświetlanych komunikatów
+  document.getElementById('output-message').innerHTML = '';
+  this.setState({
+    isResult: true
+  })
 
   let inputs =[];
   //Pobranie danych wpisanych ręcznie
@@ -238,6 +265,16 @@ findSequence(){
   //JP Kopia tablicy wejściowej - potrzebna do ustalenia kolejności krawędzi
   const initialData = [...inputs]
 
+  /* JP nie jest to potrzebne, bo dane pobieramy ze stanu 
+  //Przypisanie tablicy w zależności od wybranego radiobuttona
+  const defaultData = this.state.selectedOption == 'option1';
+  if(defaultData){
+    // ewentualnie użyć slice(0) aby zrobić płytką kopię
+    inputs = [...defaultInputs];
+  }
+   else {
+    inputs = [...myInputs];
+  } */
   this.showCurrentStepMsg("Dane wejsciowe");
   this.showCurrentStepMsg(inputs);
 
@@ -275,8 +312,15 @@ findSequence(){
     this.showCurrentStepMsg('Tablica po odejmowaniu:');
     this.showCurrentStepMsg(inputs);
 
+   
+
+    // ALR zmiana spowodowana zmianami w inputs
+    //overlapArray.push([selectedContig,maxVal]);
+    //JP przywracam do wczesniejszego stanu bo na 
+    //początku robimy mapowanie i pozbywamy się innych kluczy
     overlapArray.push([selectedContig,maxVal]);
     
+
     // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
     // overlaping zawiera dane nakładania się tylko dla bieżącego węzła
     overlaping = this.getOverlapValues(selectedContig, inputs);
@@ -288,35 +332,32 @@ findSequence(){
     
     let overlapingSample = inputs[currentIndex];
     this.showCurrentStepMsg("nowy contig " + overlapingSample)
-    this.showCurrentStepMsg("nakladanie "+ maxVal)
-    // ALR uwzględnienie sytuacji, że wybrany kontig wybitnie do niczego nie pasuje
-    if (maxVal !== 0){
-      edge = initialData.indexOf(overlapingSample) + 1;
-      orderOfEdges.push(edge)
-    }
+   
+    edge = initialData.indexOf(overlapingSample) + 1;
+    orderOfEdges.push(edge)
+  
+    
     selectedContig = overlapingSample;
     overlaping = [];
-    
+    index = currentIndex;// ALR zastanowić się czy ta zmienna nie jest zbędna i nie wystarczy currentIndex sam
+
   }
 
   this.showCurrentStepMsg(overlapArray)
-  
-  //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
-  this.addEdgesToGraph(orderOfEdges);
-}
 
-//JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
-addEdgesToGraph(_orderOfEdges){
+  //JP stworzenie tablicy przechowującej obiekty krawędzi z kluczami from i to
   let finalOrderOfEdges = []
-  this.showCurrentStepMsg(_orderOfEdges);
-  for (let k=0; k<_orderOfEdges.length-1; k++){
+
+  for (let k=0; k<orderOfEdges.length-2; k++){
     let element = {}
-    element.from = _orderOfEdges[k];
-    element.to = _orderOfEdges[k+1]
+    element.from = orderOfEdges[k];
+    element.to = orderOfEdges[k+1]
     finalOrderOfEdges.push(element)
   }
   this.setState({
-    edges: finalOrderOfEdges}); 
+    edges: finalOrderOfEdges
+  })
+ 
 }
 
   render(){
@@ -341,6 +382,12 @@ addEdgesToGraph(_orderOfEdges){
       } else {
        list =  <div>{inputForm} <InputList items={this.state.items} deleteItem={this.deleteItem}  deleteAll={this.deleteAll}/> </div>
       }
+
+    const isResult = this.state.isResult;
+    let resultMsgHeader;
+    if(isResult){
+      resultMsgHeader = <p className="text-left header-message">Przebieg algorytmu:</p>    
+    }
     return (
       <div className="App">
         <div className="container">
@@ -363,17 +410,25 @@ addEdgesToGraph(_orderOfEdges){
               {list}
               <Button variant="contained" color="primary" className="mr-2" onClick={this.findSequence}>Generuj graf</Button>
               <Button variant="outlined" color="primary" className="ml-2" onClick={this.resetGraph}>Resetuj</Button>
+
+              <Button variant="outlined" color="primary" className="ml-2 mt-4" onClick={this.handleNext}>Następny krok</Button>
+              <Button variant="outlined" color="primary" className="ml-2 mt-4" onClick={this.handlePrev}>Poprzedni krok</Button>
             </div> 
           </div>
             </div>
             <div className="col-lg-7 offset-lg-1">
+              
             <GraphOlc items={this.state.items}
                       edges={this.state.edges}>
             </GraphOlc>
             </div>
           </div>
-          
-          
+          <div className="row">
+            <div className="mt-5 col-lg-12">
+               {resultMsgHeader}
+               <div id="output-message" className="text-left overflow-auto message mb-5"></div>
+            </div>
+          </div> 
         </div>              
       </div>
       
