@@ -7,11 +7,12 @@ import Button from '@material-ui/core/Button';
 import FormLabel from '@material-ui/core/FormLabel';
 import { library } from '@fortawesome/fontawesome-svg-core';
 import { faTrash } from '@fortawesome/free-solid-svg-icons';
-
+import ReactDOM from "react-dom";
+import Graph from "react-graph-vis";
 import './App.css';
 import InputList from '../InputList/InputList';
 import DefaultInputList from '../InputList/DefaultInputList';
-import OlcGraph from '../OlcGraph/OlcGraph'
+import GraphOlc from '../GraphOlc/GraphOlc';
 
 
 library.add(faTrash)
@@ -36,47 +37,12 @@ const HistoryVisualizationType = {
   CONSOLE: 'Console'
 }
 
-// Klasa do zbierania i zwracania kolejnych kroków algorytmu, do użycia i wywołania w oddzielnych implementacjach
-class History {
+// Klasa do zbierania i zwracania kolejnych kroków algorytmu, na podstawie wzorca projetowego Command - ARL
+class commandHistory {
 
-    constructor(_algorithmName){
-      this.algorithmName = _algorithmName;
-        // Tablica przechowująca indeksy kolejnych pobieranych podsekwencji
-        // W zapisie kroków dodać także informacje o tym co zrobiono (jakby np w trakcie działania odrzucono jakąś sekwencję)
-      this.steps         = new Array();
-        
-    }
-
-    validateStepType(_stepOperationType){
-      return Object.values(OperationType).includes(_stepOperationType);
-    }
-    // W opisie operacji w historii przechowujemy indeks kontigu oraz typ operacji 
-    addStep(_stepContigIndex, _stepOperationType){
-      
-      if (this.validateStepType(_stepOperationType)){
-        this.steps.push({'index' : _stepContigIndex, 'operationType': _stepOperationType});
-      }
-    
-    }
-
+  
 }
 
-// ALR klasa bazowa dla historii algorytmu
-// TODO: zdecydować nad implementacją polimorfizmu
-class HistoryVisualiserBasic {
-
-  constructor (_HistoryVisualizationType){
-    
-
-  }
-
-}
-
-// ALR
-class HistoryVisualiserConsole extends HistoryVisualiserBasic{
-
-
-}
 
 
 class App extends React.Component {
@@ -90,15 +56,29 @@ class App extends React.Component {
             text:'',
             key: ''
         },
-        lengthError: ''
+        lengthError: '', 
+        nodes: [],// ALR zmienne do przechowywania danych grafu
+        edges: [],
     }
     this.handleInput = this.handleInput.bind(this);
     this.addItem = this.addItem.bind(this);
     this.deleteItem = this.deleteItem.bind(this);
     this.deleteAll = this.deleteAll.bind(this);
-    this.callFindOverlap = this.callFindOverlap.bind(this);
+    this.findSequence = this.findSequence.bind(this);
+    this.getStartingindexAndValue = this.getStartingindexAndValue.bind(this);
+    this.getOverlapValues = this.getOverlapValues.bind(this);
+    this.getNextContigIndex = this.getNextContigIndex.bind(this);
+    this.addNode = this.addNode.bind(this);
 }
 
+addNode(_edgeLabel){
+  let node = {};
+  node["id"] = this.state.nodes.length+1;
+  node["label"] = _edgeLabel;
+  node["title"] = _edgeLabel;
+  this.state.nodes.push(node);
+
+}
 handleInput(e){
     this.setState({
         currentItem: {
@@ -200,89 +180,118 @@ findOverlapLength(a,b) {
 // Wstępny prototyp implementacji algorytmu zachłannego. 
 // Z obserwacją postępu w oknie konsoli. Do dalszej implementacji
 // wyświetlanie wyników na stronie.
-callFindOverlap(){
 
+// ALR funkcja do ustalania indeksu startowej sekwencji 
+getStartingindexAndValue(_inputs){
+  // index - indeks startowego odczytu
+  let index = Math.floor(Math.random() * _inputs.length);
+  //let index = 0;
+  let maxVal = 0;
+  
+  return [index, maxVal]
+}
 
+// ALR - funkcja do wyliczania nakładań na sekwencje wskazane w _inputs względem sekwencji _selectedContig. 
+getOverlapValues(_selectedContig, _inputs){
+  let j;
+  let overlaping = [];
+  if (_inputs.length !== 1){
+    for(j=0; j<_inputs.length; j++){
+      overlaping[j] = this.findOverlapLength(_selectedContig, _inputs[j]);
+      this.showCurrentStepMsg('j: ' + j )
+    }
+  }
+  return overlaping;
+}
+
+// ALR wyszukanie kolejnego kontiga
+getNextContigIndex(_overlaping){
+  let maxValLocal = 0;
+  let currentIndexLocal = 0;
+  
+  if (_overlaping.length){
+    maxValLocal = Math.max.apply(Math, _overlaping);
+    this.showCurrentStepMsg(maxValLocal);
+    currentIndexLocal = _overlaping.indexOf(maxValLocal) 
+  }
+  return [currentIndexLocal, maxValLocal] 
+}
+
+// ALR wypisywanie informacji o bieżącym działaniu, wyciągnięte do oddzielnej metody aby zmieniać między
+// Konsolą a wypisaniem bezpośrednio na stronie.
+showCurrentStepMsg(_msg){
+  console.log(_msg)  
+}
+
+findSequence(){
+  
   let inputs =[];
-
-  //Pobranie danych wpisywanych ręcznie
+  //Pobranie danych wpisanych ręcznie
   const myInputs = this.state.items.map((item) => item.text);
 
   //Przypisanie tablicy w zależności od wybranego radiobuttona
   const defaultData = this.state.selectedOption == 'option1';
   if(defaultData){
-    inputs = defaultInputs;
+    // ewentualnie użyć slice(0) aby zrobić płytką kopię
+    inputs = [...defaultInputs];
+    inputs.forEach(this.addNode) 
   } else {
-    inputs = myInputs;
+    inputs = [...myInputs];
   }
-  console.log("Dane wejsciowe");
-  console.log(inputs);
+  this.showCurrentStepMsg(this.state.nodes)
+  this.showCurrentStepMsg("Dane wejsciowe");
+  this.showCurrentStepMsg(inputs);
 
-  let inputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
-  console.log("aaa");
-  console.log(inputs.content);
+  let origInputLength = inputs.length;// ALR refaktor, jakbyśmy zdecydowali się coś zmienić, to w jednym miejscu lepiej zmieniać długosć
+  this.showCurrentStepMsg('Długość wejściowa ' + origInputLength);
+  let currInputLength = origInputLength; // ALR : informacja o bieżącej długości tablicy z podsekwencjami, na użytek pętli
 
   let i;
   let j;
+  let overlaping = []
+
   // macierz nxn przechowująca wagi krawędzi między grafami, 
   // czyli długości nakładających się fragmentów obu sekwencji.
-  let overlapArray = new Array(inputLength);
-  console.log(overlapArray);
-  
-  // Wpierw uzupełniamy macierz nakładania się 0 i 
-  // Miarą nakładania się sekwencji.
-  for(i=0; i < inputLength; i++){
-    overlapArray[i] = new Array (inputLength);
-    overlapArray[i].fill(0);
-    for(j=i+1; j < inputLength; j++){
-      let output = this.findOverlapLength(inputs[i], inputs[j] );
-      overlapArray[i][j] = output;
-      console.log(output);
-    }
-  }
-  console.log(overlapArray);
-  // Następnie przechodzimy po macierzy sekwencji, zaczynając od rekordu,
-  // Od którego wpierw zaczęliśmy tworzenie macierzy nakładania.
-  // Następnie przechodzimy po kolejnych sekwencjach, które najbardziej się
-  // nakładają. Wypisujemy po kolei kolejne podsekwencje. 
-  // Dodać randomizację indeksu, a następnie uwzględnić kilka róznych przejść jeśli wybrany indeks nie zwraca ok wartości
-  let index = 0; 
-  let orderArray = new Array(inputLength);
-  
-  for(i=0; i< inputLength-1; i++){
-    
-    console.log("Iteracja " + i)
-    
-    let maxVal = Math.max.apply(Math, overlapArray[index]);
-    let currentIndex = overlapArray[index].indexOf(maxVal);
-    
-    console.log("Max nakładanie " + maxVal);
-    
-    let nextMaxVal = Math.max.apply(Math, overlapArray[currentIndex]);
-   
-    // Proste sprawdzenie na wypadek skrajnego przypadku, gdyby z następnego
-    // węzła nie można było przejść nigdzie dalej. 
-    if(!nextMaxVal && i != inputLength-2) {
-      console.log("Obsługa ślepego zaułka");
-      overlapArray[index][currentIndex] = 0;
-      maxVal = Math.max.apply(Math, overlapArray[index]); 
-      currentIndex = overlapArray[index].indexOf(maxVal);
-      console.log("Second max " + maxVal +' '+ currentIndex);
-    }
-    // Dodanie kolejnego kroku oraz wartości nakładania w kroku.
-    orderArray[i] = [currentIndex, maxVal];
+  let overlapArray = [];
+ 
+    //Pobranie indeksu startowego odczytu oraz inicjalizacja zmiennej maxValue
+    let index;
+    let maxVal;
+    [index, maxVal] = this.getStartingindexAndValue(inputs);
 
-    console.log("current " + currentIndex);
+    let selectedContig = inputs[index];;
+    this.showCurrentStepMsg('contig ' + selectedContig);
+    let currentIndex = index; 
+
+  for (i=0; i<origInputLength; i++) {
+    inputs.splice(currentIndex,1);
+    currInputLength = inputs.length;
+    this.showCurrentStepMsg('Dlugosc po odjeciu ' + currInputLength);
+    this.showCurrentStepMsg('Tablica po odejmowaniu:');
+    this.showCurrentStepMsg(inputs);
+
+    overlapArray.push([selectedContig,maxVal]);
+    
+    // ALR - metoda do znajdywania podobieństw pośród pozostałych kontigów  
+    overlaping = this.getOverlapValues(selectedContig, inputs);
+    
+    this.showCurrentStepMsg('Wartości nakładających sie odczytów:');
+    this.showCurrentStepMsg(overlaping);
+    
+    // ALR - wybór kolejnego kontiga
+    [currentIndex, maxVal] = this.getNextContigIndex(overlaping);
+    
+    let overlapingSample = inputs[currentIndex];
+    this.showCurrentStepMsg("nowy contig " + overlapingSample)
+    
+    selectedContig = overlapingSample;
+    overlaping = [];
     index = currentIndex;
-    // Dla celów testowych wypisanie kolejnych kroków algorytmu.
-    console.log(inputs[index]);
-    
-  }
-  // TODO: utworzenie metody która na podstawie macierzy kroków
-    // pełnej sekwencji. Będziemy dodawać kolejne podsekwencje (o indeksach 
-    // wskazanych w orderArray), ale bez pierwszych maxVal znaków. 
 
-  console.log(orderArray);
+  }
+
+  this.showCurrentStepMsg(overlapArray)
+ 
 }
 
   render(){
@@ -329,17 +338,22 @@ callFindOverlap(){
             <div className="row">
             <div className="col-lg-12"> 
               {list}
-              <Button variant="contained" color="primary" onClick={this.callFindOverlap}>Rozpocznij</Button>
+              <Button variant="contained" color="primary" onClick={this.findSequence}>Rozpocznij</Button>
             </div> 
           </div>
+            </div>
+            <div className="col-lg-8">
+            <GraphOlc nodes={this.state.nodes}
+                      edges={this.state.edges}></GraphOlc>
             </div>
           </div>
           
           
         </div>              
       </div>
+      
     );
-
+    
   }
 }
 
